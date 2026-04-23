@@ -161,7 +161,7 @@ public:
 
     string operate_log[10000];
 
-    int start_fight()
+    void start_fight()
     {
         while(1)
         {
@@ -175,6 +175,7 @@ public:
             cout<<"=============================================================="<<endl;
             string a;
             a=GETCH;
+            enemy.emy(stoi(a));
             if(a=="q")
             {
                 break;
@@ -197,16 +198,23 @@ public:
                 o=GETCH;
                 if(o=="s")
                 {
+                    CLEAR_SCREEN;
                     select(stoi(a));
                 }
                 else if(o=="c")
                 {
                     CLEAR_SCREEN;
-                    cout << "关卡" << a << "详情：" << endl;
+                    cout<<"关卡"<<a<<"详情："<<endl;
+                    for(int i=1;i<=5;i++)
+                    {
+                        cout<<"第"<<i<<"单位："<<enemy.enemy_name[i]<<endl;
+                        cout<<"血量："<<enemy.e[i]<<endl;
+                        cout<<"攻击力："<<enemy.at_power[i]<<endl;
+                        cout<<endl;
+                    }
 
 
-
-                    cout << "按任意键返回" << endl;
+                    cout<<"按任意键返回"<<endl;
                     GETCH;
                     CLEAR_SCREEN;
                 }
@@ -413,7 +421,7 @@ public:
     
     //养成
 
-    int yangcheng2(string name)
+    void yangcheng2(string name)
     {
             cout<<screen_stirp[0]<<endl;
             cout<<"所选角色:"<<name<<endl;
@@ -427,7 +435,7 @@ public:
             cout<<screen_stirp[0]<<endl;
     } 
 
-    int yangcheng1()
+    void yangcheng1()
     {
         string nameye[10][10]={{"lost(1)"}};
         // 显示角色
@@ -467,7 +475,7 @@ public:
             else if(name=="q")
             {
                 CLEAR_SCREEN;
-                return 0;
+                return ;
             }
             else if(name>="1"&&name<="9")
             {
@@ -516,14 +524,14 @@ public:
     };
     // 渲染单个帧的通用方法
     void render_frame(const AnimationFrame& frame) {
-        cout << screen_stirp[0] << endl << screen_stirp[1] << endl;
-        cout << screen_stirp[1] << endl << screen_stirp[1] << endl;
-        cout << screen_stirp[1] << endl << screen_stirp[1] << endl;
-        cout <<frame.text << endl;
-        cout << screen_stirp[5] + screen_stirp[7] + screen_stirp[7];
-        cout << frame.progress_bar;
-        cout << screen_stirp[7] + screen_stirp[7] + screen_stirp[6] << endl;
-        cout << screen_stirp[1] << endl << screen_stirp[0] << endl;
+        cout<<screen_stirp[0]<<endl<<screen_stirp[1]<<endl;
+        cout<<screen_stirp[1]<<endl<<screen_stirp[1]<<endl;
+        cout<<screen_stirp[1]<<endl<<screen_stirp[1]<<endl;
+        cout <<frame.text<<endl;
+        cout<<screen_stirp[5] + screen_stirp[7] + screen_stirp[7];
+        cout<<frame.progress_bar;
+        cout<<screen_stirp[7] + screen_stirp[7] + screen_stirp[6]<<endl;
+        cout<<screen_stirp[1]<<endl<<screen_stirp[0]<<endl;
     }
     
     int start_screen()//开始屏幕显示
@@ -597,13 +605,13 @@ public:
                 CLEAR_SCREEN;
                 cout<<"角色名称："<<nameye[page-1][stoi(name)-1]<<endl;
                 cout<<"角色技能："<<endl;
-                cout << screen_stirp[7] + "天赋：探索者   形态：1" << endl;
-                cout << screen_stirp[7] + screen_stirp[7] + "天赋：    作为独行于此的你，步步为艰，你将探索此地，学习便是你最好的武器，（经过学习你将会获得新的一套技能）" << endl;
-                cout << screen_stirp[7] + "形态：无知    初来乍到，你一无所知" << endl;
-                cout << screen_stirp[7] + screen_stirp[7] + "普攻a：   回复一个理性点，对指定敌方单体造成80%攻击力的伤害，回复20能量" << endl;
-                cout << screen_stirp[7] + screen_stirp[7] + "E技能e：  消耗一个理性点，对指定敌方单体造成200%攻击力的伤害，回复30能量" << endl;
-                cout << screen_stirp[7] + screen_stirp[7] + "Q技能q：  消耗180能量，回复两个理性点，进入「回复」状态，持续三回合，此状态下记录角色造成的伤害，在状态中，每回合结束后将记录的伤害的50%转化为血量回复量" << endl;
-                cout << "按任意键以返回" << endl;
+                cout<<screen_stirp[7] + "天赋：探索者   形态：1"<<endl;
+                cout<<screen_stirp[7] + screen_stirp[7] + "天赋：    作为独行于此的你，步步为艰，你将探索此地，学习便是你最好的武器，（经过学习你将会获得新的一套技能）"<<endl;
+                cout<<screen_stirp[7] + "形态：无知    初来乍到，你一无所知"<<endl;
+                cout<<screen_stirp[7] + screen_stirp[7] + "普攻a：   回复一个理性点，对指定敌方单体造成80%攻击力的伤害，回复20能量"<<endl;
+                cout<<screen_stirp[7] + screen_stirp[7] + "E技能e：  消耗一个理性点，对指定敌方单体造成200%攻击力的伤害，回复30能量"<<endl;
+                cout<<screen_stirp[7] + screen_stirp[7] + "Q技能q：  消耗180能量，回复两个理性点，进入「回复」状态，持续三回合，此状态下记录角色造成的伤害，在状态中，每回合结束后将记录的伤害的50%转化为血量回复量"<<endl;
+                cout<<"按任意键以返回"<<endl;
                 string returnq;
                 returnq=GETCH;
             }
@@ -634,7 +642,8 @@ public:
             }
             else if(a=="f")
             {
-                o.select(1);
+                CLEAR_SCREEN;
+                o.start_fight();
             }   
             else if(a=="g")
             {
