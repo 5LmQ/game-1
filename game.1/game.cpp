@@ -175,11 +175,12 @@ public:
             cout<<"=============================================================="<<endl;
             string a;
             a=GETCH;
-            enemy.emy(stoi(a));
             if(a=="q")
             {
+                CLEAR_SCREEN;
                 break;
             }
+            enemy.emy(stoi(a));
             while(1)
             {
                 CLEAR_SCREEN;
@@ -205,14 +206,20 @@ public:
                 {
                     CLEAR_SCREEN;
                     cout<<"关卡"<<a<<"详情："<<endl;
-                    for(int i=1;i<=5;i++)
-                    {
-                        cout<<"第"<<i<<"单位："<<enemy.enemy_name[i]<<endl;
-                        cout<<"血量："<<enemy.e[i]<<endl;
-                        cout<<"攻击力："<<enemy.at_power[i]<<endl;
-                        cout<<endl;
-                    }
+                    enemy.print();
 
+                    int give[1000];
+                    string strgive[1000];
+                    tool.char_dependent_segmentation(strgive,spoil[stoi(a)-1],'.');
+                    tool.str_to_int(give,strgive);
+                    cout<<"奖励："<<endl;
+                    for(int i=0;i<10;i++)
+                    {
+                        if(give[i])
+                        {
+                            cout<<screen_stirp[7]<<storage_breakdown[i]<<":"<<give[i]<<endl;
+                        }
+                    }
 
                     cout<<"按任意键返回"<<endl;
                     GETCH;
@@ -225,11 +232,13 @@ public:
                 }
                 else if(o=="q")
                 {
+                    CLEAR_SCREEN;
                     break;
                 }
             }
             
         }
+        return ;
 
     }
 
