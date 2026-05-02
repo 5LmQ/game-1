@@ -17,42 +17,45 @@ using namespace std;
         struct termios oldt, newt;
         char ch;
         tcgetattr(STDIN_FILENO, &oldt);
-        newt = oldt;
+        newt=oldt;
         newt.c_lflag &= ~(ICANON | ECHO);
         tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-        ch = getchar();
+        ch=getchar();
         tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
         return ch;
     }
     #define GETCH getch_char()
 #endif
 
+int role_att_power[10]={100};
+int role_life[10]={1500};
+
 class The_lost//玩家
 {
 public:
 
-    int att_power=100;
-    int lostnl=0,life=1500;
+    int att_power;
+    int lostnl,life;
     string name="the lost";
-    bool recovery_state = false; // 「回复」状态标记
-    int recovery_turn = 0;       // 「回复」状态剩余回合
-    int damage_record = 0;       // 「回复」状态下记录的伤害值
+    bool recovery_state=false; // 「回复」状态标记
+    int recovery_turn=0;       // 「回复」状态剩余回合
+    int damage_record=0;       // 「回复」状态下记录的伤害值
     int rationality=0;//理性点，普攻后增加，消耗以发动e技能，理智点属于各个角色独有，不与其他角色共享
     The_lost()
     {
-        att_power=100;
+        att_power=role_att_power[0];
         lostnl=0;
-        life=1500;
-        name="lost";
-        recovery_state = false;
-        recovery_turn = 0;
-        damage_record = 0;
+        life=role_life[0];
+        name="the lost";
+        recovery_state=false;
+        recovery_turn=0;
+        damage_record=0;
         rationality=0;
     }
     void lostaskill(int d,int *lostnl,int *e,int *rationality)//普攻
     {
         *lostnl=*lostnl+20;
-        int damage = 0.8 * att_power;
+        int damage=0.8*att_power;
         e[d]-=damage;
         if(recovery_state) {
             damage_record += damage;
@@ -61,7 +64,7 @@ public:
         *rationality+=1;
         if(e[d] <= 0) 
         {
-            e[d] = 0;
+            e[d]=0;
         }
     }
     void losteskill(int d,int *lostnl,int *e,int *rationality)//e技能
@@ -75,7 +78,7 @@ public:
             cout<<"理性不足"<<endl;
             return;
         }
-        int damage = 2 * att_power;
+        int damage=2*att_power;
         e[d]-=damage;
         if(recovery_state) {
             damage_record += damage;
@@ -84,7 +87,7 @@ public:
         *lostnl+=30;
         if(e[d] <= 0)
         {
-            e[d] = 0;
+            e[d]=0;
         }
     }
 
@@ -102,9 +105,9 @@ public:
 
         // 大招核心逻辑：回复2个理性点，进入回复状态（持续2回合），重置伤害记录
         rationality += 2;
-        recovery_state = true;
-        recovery_turn = 3+1;
-        damage_record = 0;
+        recovery_state=true;
+        recovery_turn=3+1;
+        damage_record=0;
         cout<<"【Q技能生效】回复2个理性点（当前："<<rationality<<"），进入「回复」状态，持续3回合！"<<endl;
 
         // 回复状态结束处理（如果是状态到期）- 此处由回合逻辑触发，这里仅初始化状态
@@ -118,16 +121,16 @@ public:
             int damage_record_per=0.5;
             recovery_turn--;
             cout<<"【回复状态】剩余回合："<<recovery_turn<<endl;
-            int heal = damage_record * damage_record_per;
+            int heal=damage_record*damage_record_per;
             damage_record*=damage_record_per;
             life += heal;
             // 生命值不超过上限
-            if(life > 1500) life = 1500;
+            if(life > 1500) life=1500;
             cout<<"【回复状态】累计造成伤害："<<damage_record<<"，转化"<<heal<<"点记录值（当前："<<life<<"）"<<endl;
 	     if(recovery_turn==0)
             {
-                recovery_state = false;
-                damage_record = 0;
+                recovery_state=false;
+                damage_record=0;
             } 
         }
     }
@@ -227,7 +230,7 @@ public:
                 }
                 else if(o=="k")
                 {
-                    copy_o = !copy_o;
+                    copy_o=!copy_o;
                     CLEAR_SCREEN;
                 }
                 else if(o=="q")
@@ -294,13 +297,13 @@ public:
         if(if_vitcter)
         {
             cout<<"战斗胜利"<<endl;
-            lost.att_power=100;
+            lost.att_power=role_att_power[0];
             lost.lostnl=0;
-            lost.life=1500;
-            lost.name="lost";
-            lost.recovery_state = false;
-            lost.recovery_turn = 0;
-            lost.damage_record = 0;
+            lost.life=role_life[0];
+            lost.name="the lost";
+            lost.recovery_state=false;
+            lost.recovery_turn=0;
+            lost.damage_record=0;
             lost.rationality=0;
             int give[1000];
             string strgive[1000];
@@ -319,13 +322,13 @@ public:
         else
         {
             cout<<"战斗失败"<<endl;
-            lost.att_power=100;
+            lost.att_power=role_att_power[0];
             lost.lostnl=0;
-            lost.life=1500;
-            lost.name="lost";
-            lost.recovery_state = false;
-            lost.recovery_turn = 0;
-            lost.damage_record = 0;
+            lost.life=role_life[0];
+            lost.name="the lost";
+            lost.recovery_state=false;
+            lost.recovery_turn=0;
+            lost.damage_record=0;
             lost.rationality=0;
 
             
@@ -346,8 +349,8 @@ public:
                 CLEAR_SCREEN;
                 enemy.print();
                 cout<<"发动普攻，请选择目标1~5:"<<endl;
-                char d_char = GETCH;
-                d = d_char - '0';
+                char d_char=GETCH;
+                d=d_char - '0';
                 //d-=1;
                 lost.lostaskill(d,&lost.lostnl,enemy.e,&lost.rationality);
                 CLEAR_SCREEN;
@@ -360,8 +363,8 @@ public:
                 CLEAR_SCREEN;
                 enemy.print();
                 cout<<"发动技能，请选择目标(1~5):"<<endl;
-                int d_char = GETCH;
-                d = d_char - '0';
+                int d_char=GETCH;
+                d=d_char - '0';
                 //d-=1;
                 enemy.print();
                 lost.losteskill(d,&lost.lostnl,enemy.e,&lost.rationality);
@@ -384,10 +387,10 @@ public:
             Natural_Number natural_number;
             CLEAR_SCREEN;
             enemy.print();
-            unsigned int seed = chrono::system_clock::now().time_since_epoch().count();
+            unsigned int seed=chrono::system_clock::now().time_since_epoch().count();
             mt19937 engine(seed);
             uniform_int_distribution<int> int_dist(1, 4);
-            int random_int = int_dist(engine);
+            int random_int=int_dist(engine);
             cout<<"敌方"<<numberqueue.front()<<"号敌人，natural_number发动技能:"<<endl;
             if(180-lost.lostnl<10)
             {
@@ -432,16 +435,31 @@ public:
 
     void yangcheng2(string name)
     {
+        while (1)
+        {
             cout<<screen_stirp[0]<<endl;
             cout<<"所选角色:"<<name<<endl;
-            cout<<screen_stirp[5]<<"1.                                    "<<screen_stirp[6]<<endl;
-            cout<<screen_stirp[1]<<endl;
-            cout<<screen_stirp[1]<<endl;
-            cout<<screen_stirp[1]<<endl;
+            cout<<screen_stirp[5]<<"1.升级等级                                 "<<screen_stirp[6]<<endl;
+            cout<<screen_stirp[5]<<"2.升级天赋                                 "<<screen_stirp[6]<<endl;
+            cout<<screen_stirp[5]<<"3.升级装备                                 "<<screen_stirp[6]<<endl;
+            cout<<screen_stirp[5]<<"4.额外技能树                               "<<screen_stirp[6]<<endl;
             cout<<screen_stirp[1]<<endl;
             cout<<screen_stirp[1]<<endl;
             cout<<screen_stirp[1]<<endl;
             cout<<screen_stirp[0]<<endl;
+            cout<<"输入序号1~4      q：退出"<<endl;
+            char operationoptions;
+            operationoptions=GETCH;
+            if(operationoptions=='q')
+            {
+                return;
+            }
+            else if(operationoptions=='1')
+            {
+                //开发中.ing
+                
+            }
+        }
     } 
 
     void yangcheng1()
@@ -506,7 +524,7 @@ public:
         string progress_bar;
     };
     // 预定义动画帧
-    vector<AnimationFrame> loading_frames = {
+    vector<AnimationFrame> loading_frames={
         {screen_stirp[2], "□□□□□□□□□□□□□□□□□□□□"},
         {screen_stirp[3], "■□□□□□□□□□□□□□□□□□□□"}, 
         {screen_stirp[4], "■■□□□□□□□□□□□□□□□□□□"}, 
