@@ -162,7 +162,7 @@ class operate//操作类
 {
 public:
 
-    string operate_log[10000];
+    string operate_log[10000];//关卡行为复制储存器
 
     void start_fight()
     {
@@ -511,6 +511,12 @@ public:
         }
     }
 
+        void print_bag()
+    {
+        
+    }
+
+
 };
 
 operate o;
@@ -655,7 +661,7 @@ public:
             cout<<screen_stirp[0]<<endl;
             cout<<screen_stirp[1]<<endl;
             cout<<screen_stirp[1]<<endl;
-            cout<<screen_stirp[1]<<endl;
+            cout<<"|                      输入“e”查看角背包                       |"<<endl;
             cout<<"|                      输入“c”查看角色                       |"<<endl;
             cout<<"|                      输入“f”开始战斗                       |"<<endl;
             cout<<"|                      输入“g”养成角色                       |"<<endl;
@@ -678,6 +684,11 @@ public:
             {
                 CLEAR_SCREEN;
                 o.yangcheng1();   
+            }
+            else if(a=="e")
+            {
+                CLEAR_SCREEN;
+                o.print_bag();
             }
             else
             {
