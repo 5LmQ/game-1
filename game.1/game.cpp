@@ -566,19 +566,21 @@ public:
         int a;
         cout<<screen_stirp[0]<<endl<<screen_stirp[1]<<endl;
         cout<<screen_stirp[5]<<"--                                    --"<<screen_stirp[6]<<endl;
-        cout<<screen_stirp[5]<<"(            名为数学的游戏            )"<<screen_stirp[6]<<endl;
+        cout<<screen_stirp[5]<<"(         （我也没起好名）游戏         )"<<screen_stirp[6]<<endl;
         cout<<screen_stirp[5]<<"--                                    --"<<screen_stirp[6]<<endl<<screen_stirp[1]<<endl;
         cout<<screen_stirp[5]<<"        (输入任意内容以开始游戏)        "<<screen_stirp[6]<<endl<<screen_stirp[1]<<endl<<screen_stirp[1]<<endl<<screen_stirp[0]<<endl;
         cout<<"输入任意内容以开始游戏：";
-        cin>>a;
-        cout<<endl;
-        cout<<"欢迎来到“名为数学的游戏”游戏马上开始"<<endl;
-        
+        string p;
+        p=GETCH;
+        cout<<"欢迎来到（我也没起好名）游戏 游戏马上开始"<<endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         // 播放加载动画
         for (const auto& frame : loading_frames) {
+            CLEAR_SCREEN;
             render_frame(frame);
             std::this_thread::sleep_for(std::chrono::milliseconds(300));
         }
+        CLEAR_SCREEN;
         
         return 0;
     }
@@ -698,7 +700,7 @@ int main()
     #endif
 
     display screen;
-    //screen.start_screen();//不知道为啥，把注释解了就会出事
+    screen.start_screen();
     screen.choose();
     // operate fight;
     // fight.generate();
