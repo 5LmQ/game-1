@@ -1,4 +1,4 @@
-#include <bits/stdc++.h>
+#include "bits.h"
 #include "tool.h"
 #include "enemy.cpp"
 
@@ -661,7 +661,7 @@ public:
             cout<<screen_stirp[0]<<endl;
             cout<<screen_stirp[1]<<endl;
             cout<<screen_stirp[1]<<endl;
-            cout<<"|                      输入“e”查看角背包                       |"<<endl;
+            cout<<"|                      输入“e”查看背包                       |"<<endl;
             cout<<"|                      输入“c”查看角色                       |"<<endl;
             cout<<"|                      输入“f”开始战斗                       |"<<endl;
             cout<<"|                      输入“g”养成角色                       |"<<endl;
