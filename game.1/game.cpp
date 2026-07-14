@@ -118,10 +118,10 @@ public:
     void update_recovery_state() {
         if(recovery_state) 
         {
-            int damage_record_per=0.5;
+            double damage_record_per=0.5;
             recovery_turn--;
             cout<<"【回复状态】剩余回合："<<recovery_turn<<endl;
-            int heal=damage_record*damage_record_per;
+            double heal=damage_record*damage_record_per;
             damage_record*=damage_record_per;
             life += heal;
             // 生命值不超过上限
