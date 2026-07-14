@@ -147,6 +147,7 @@ private:
                               //     5            6
                              "     "};//mini款
                              // 7
+                             //60+2-10-1-10-1=40
 
 The_lost lost;
 int bag[100000];
@@ -511,9 +512,21 @@ public:
         }
     }
 
-        void print_bag()
+    void print_bag()
     {
-        
+        int page=1;
+        int max_page=2;
+        cout<<screen_stirp[0]<<endl;
+        cout<<"|所有角色:                                                   |"<<endl;
+        cout<<screen_stirp[5]<<tool.Completion_String(storage_breakdown[7*(page-1)+0],40)<<screen_stirp[6]<<endl;
+        cout<<screen_stirp[5]<<tool.Completion_String(storage_breakdown[7*(page-1)+1],40)<<screen_stirp[6]<<endl;
+        cout<<screen_stirp[5]<<tool.Completion_String(storage_breakdown[7*(page-1)+3],40)<<screen_stirp[6]<<endl;
+        cout<<screen_stirp[5]<<tool.Completion_String(storage_breakdown[7*(page-1)+4],40)<<screen_stirp[6]<<endl;
+        cout<<screen_stirp[5]<<tool.Completion_String(storage_breakdown[7*(page-1)+5],40)<<screen_stirp[6]<<endl;
+        cout<<screen_stirp[5]<<tool.Completion_String(storage_breakdown[7*(page-1)+6],40)<<screen_stirp[6]<<endl;
+        cout<<screen_stirp[5]<<tool.Completion_String(storage_breakdown[7*(page-1)+7],40)<<screen_stirp[6]<<endl;
+        cout<<screen_stirp[0]<<endl;
+        cout<<"输入角色序号1~9      z：上一页     x：下一页     q：退出"<<endl;
     }
 
 

@@ -35,5 +35,17 @@ struct TOOL
         }
     }
 
+    string Completion_String(string in,int len)
+    {
+        string ans="";
+        ans+=in;
+        len-=in.size();
+        for(int i=0;i<len;i++)
+        {
+            ans+=" ";
+        }
+        return ans;
+    }
+
 
 }tool;
