@@ -482,7 +482,7 @@ public:
             cout<<screen_stirp[1]<<endl;
             cout<<screen_stirp[1]<<endl;
             cout<<screen_stirp[0]<<endl;
-            cout<<"输入角色序号1~9      z：上一页     x：下一页     q：退出"<<endl;
+            cout<<"输入角色序号1~7      z：上一页     x：下一页     q：退出"<<endl;
             name=GETCH;
             if(name=="z")
             {
@@ -518,15 +518,38 @@ public:
         int max_page=2;
         cout<<screen_stirp[0]<<endl;
         cout<<"|所有角色:                                                   |"<<endl;
-        cout<<screen_stirp[5]<<tool.Completion_String(storage_breakdown[7*(page-1)+0],40)<<screen_stirp[6]<<endl;
-        cout<<screen_stirp[5]<<tool.Completion_String(storage_breakdown[7*(page-1)+1],40)<<screen_stirp[6]<<endl;
-        cout<<screen_stirp[5]<<tool.Completion_String(storage_breakdown[7*(page-1)+3],40)<<screen_stirp[6]<<endl;
-        cout<<screen_stirp[5]<<tool.Completion_String(storage_breakdown[7*(page-1)+4],40)<<screen_stirp[6]<<endl;
-        cout<<screen_stirp[5]<<tool.Completion_String(storage_breakdown[7*(page-1)+5],40)<<screen_stirp[6]<<endl;
-        cout<<screen_stirp[5]<<tool.Completion_String(storage_breakdown[7*(page-1)+6],40)<<screen_stirp[6]<<endl;
-        cout<<screen_stirp[5]<<tool.Completion_String(storage_breakdown[7*(page-1)+7],40)<<screen_stirp[6]<<endl;
+        cout<<screen_stirp[5]<<tool.Completion_String(storage_breakdown[7*(page-1)+0]+":"+to_string(bag[7*(page-1)+0]),40)<<screen_stirp[6]<<endl;
+        cout<<screen_stirp[5]<<tool.Completion_String(storage_breakdown[7*(page-1)+1]+":"+to_string(bag[7*(page-1)+1]),40)<<screen_stirp[6]<<endl;
+        cout<<screen_stirp[5]<<tool.Completion_String(storage_breakdown[7*(page-1)+3]+":"+to_string(bag[7*(page-1)+2]),40)<<screen_stirp[6]<<endl;
+        cout<<screen_stirp[5]<<tool.Completion_String(storage_breakdown[7*(page-1)+4]+":"+to_string(bag[7*(page-1)+3]),40)<<screen_stirp[6]<<endl;
+        cout<<screen_stirp[5]<<tool.Completion_String(storage_breakdown[7*(page-1)+5]+":"+to_string(bag[7*(page-1)+4]),40)<<screen_stirp[6]<<endl;
+        cout<<screen_stirp[5]<<tool.Completion_String(storage_breakdown[7*(page-1)+6]+":"+to_string(bag[7*(page-1)+5]),40)<<screen_stirp[6]<<endl;
+        cout<<screen_stirp[5]<<tool.Completion_String(storage_breakdown[7*(page-1)+7]+":"+to_string(bag[7*(page-1)+6]),40)<<screen_stirp[6]<<endl;
         cout<<screen_stirp[0]<<endl;
-        cout<<"输入角色序号1~9      z：上一页     x：下一页     q：退出"<<endl;
+        cout<<"z：上一页     x：下一页     q：退出"<<endl;
+        char operationoptions;
+        operationoptions=GETCH;
+        if(operationoptions=='z')
+        {
+            if(page==1)
+            {
+                page=max_page;
+            }
+            page--;
+        }
+        else if(operationoptions=='x')
+        {
+            if(page==max_page)
+            {
+                page=1;
+            }
+            page++;
+        }
+        else if(operationoptions=='q')
+        {
+            CLEAR_SCREEN;
+            return ;
+        }
     }
 
 
@@ -591,6 +614,7 @@ public:
         cout<<"输入任意内容以开始游戏：";
         string p;
         p=GETCH;
+        cout<<endl;
         cout<<"欢迎来到（我也没起好名）游戏 游戏马上开始"<<endl;
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         // 播放加载动画
