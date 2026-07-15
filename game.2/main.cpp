@@ -2,28 +2,41 @@
 
 using namespace std;
 #ifdef _WIN32
-#define clear system("cls")
-#define GETCH _getch()
-#include <conio.h>
-#include <windows.h>
+    #include <conio.h>
+    #include <windows.h>
+    // Windows: _kbhit() 检测是否有键，非阻塞
+    int get_key_nb() {
+        if (_kbhit()) return _getch();
+        return -1;   // 无按键
+    }
+    #define clear system("cls")
 #else
-    #define clear system("clear")
+    
     #include <termios.h>
     #include <unistd.h>
-    // Linux/Mac 无回显读取
-    char getch_char() {
+    #include <fcntl.h>
+    // Linux/Mac: 把 stdin 设为非阻塞 + 非规范模式
+    int get_key_nb() {
         struct termios oldt, newt;
-        char ch;
         tcgetattr(STDIN_FILENO, &oldt);
-        newt=oldt;
+        newt = oldt;
         newt.c_lflag &= ~(ICANON | ECHO);
         tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-        ch=getchar();
+
+        int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
+        fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);  // 非阻塞
+
+        int ch = getchar();
+        if (ch == EOF) ch = -1;   // 无按键
+
+        fcntl(STDIN_FILENO, F_SETFL, flags);   // 恢复原 flags
         tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
         return ch;
     }
-    #define GETCH getch_char()
+    #define clear system("clear")
 #endif
+
+char push[5]={'f','g','h','j'};
 
 //通常来说单位速度为一tick下降一格
 
@@ -43,7 +56,8 @@ struct Note
 struct Staff
 {
     string name;
-    Note notes[10000];
+    int time;
+    vector<Note> notes;
 };
 class Dispaly
 {
@@ -53,7 +67,7 @@ class Dispaly
         
         void add_note_to_frame(Note n)
         {
-            for(int i=n.stime;i<=n.etime;i++)
+            for(int i=n.stime;i<n.etime;i++)
             {
                 int time = i-n.stime;
                 int s=n.get_speed()*time;
@@ -73,17 +87,7 @@ class Dispaly
                 }
                 cout<<"|"<<endl;
             }
-            cout<<"-------------------------"<<endl;
-        }
-
-        void video_play()
-        {
-            for(int i=0;i<=25;i++)
-            {
-                print_frame(i);
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
-                clear;
-            }
+            cout<<"-------------------------         判定线"<<endl;
         }
 }display;
 
@@ -92,19 +96,42 @@ class Game
 {
     public:
         Staff staff[100];
+        void start(int staff_num)
+        {
+            Staff staff_copy=staff[staff_num];
+            sort(staff_copy.notes.begin(),staff_copy.notes.end(),[](Note a,Note b){return a.etime<b.etime;});
+            vector<Note> near_note;
+            for(auto n:staff_copy.notes)
+            {
+                display.add_note_to_frame(n);
+            }
+            for(int i=0;i<staff_copy.time;i++)
+            {
+                display.print_frame(i);
+                char anjian[4];
+                anjian[0]=get_key_nb();
+                anjian[1]=get_key_nb();
+                anjian[2]=get_key_nb();
+                anjian[3]=get_key_nb();
+                for(int j=0;j<4;j++)
+                {
+                    cout<<"按下"<<anjian[j]<<endl;
+                }
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                clear;
+            }
+        }
         
-};
+}game;
 
 int main()
 {
-    Note n[3]={
-        {0,10,1},
-        {5,15,2},
-        {0,20,3}
-    };
-    display.add_note_to_frame(n[0]);
-    display.add_note_to_frame(n[1]);
-    display.add_note_to_frame(n[2]);
-    display.video_play();
+    game.staff[0].name="test";
+    game.staff[0].time=100;
+    game.staff[0].notes.push_back({0,10,1});
+    game.staff[0].notes.push_back({10,20,2});
+    game.staff[0].notes.push_back({20,30,3});
+    game.staff[0].notes.push_back({30,40,4});
+    game.start(0);
     return 0;
 }
