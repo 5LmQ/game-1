@@ -98,26 +98,79 @@ class Game
         Staff staff[100];
         void start(int staff_num)
         {
+            string zhuangtai[4]={" good"," miss"," bad ","     "};
+            int good=0,miss=0,bad=0;
             Staff staff_copy=staff[staff_num];
             sort(staff_copy.notes.begin(),staff_copy.notes.end(),[](Note a,Note b){return a.etime<b.etime;});
-            vector<Note> near_note;
             for(auto n:staff_copy.notes)
             {
                 display.add_note_to_frame(n);
             }
             for(int i=0;i<staff_copy.time;i++)
             {
-                display.print_frame(i);
+
+                //理论上只会有4押
+                //so我大抵可以偷个懒
+
                 char anjian[4];
                 anjian[0]=get_key_nb();
                 anjian[1]=get_key_nb();
                 anjian[2]=get_key_nb();
                 anjian[3]=get_key_nb();
+                // for(int j=0;j<4;j++)
+                // {
+                //     cout<<"按下"<<anjian[j]<<endl;
+                // }
+
+                int need_tap[4]={0,0,0,0};
+                int tap_id[4]={0,0,0,0};
+                int zt[4]={3,3,3,3};
+                for(int j=0;j<min(4,(int)staff_copy.notes.size());j++)
+                {
+                    need_tap[staff_copy.notes[j].track-1]=staff_copy.notes[j].etime-i;
+                    tap_id[staff_copy.notes[j].track-1]=j+1;
+                    // std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                    // staff_copy.notes.erase(staff_copy.notes.begin());
+                }
+
                 for(int j=0;j<4;j++)
                 {
-                    cout<<"按下"<<anjian[j]<<endl;
+                    for(int k=0;k<4;k++)
+                    {
+                        if(need_tap[j]<0)
+                        {
+                            zt[j]=1;
+                            miss++;
+                            staff_copy.notes.erase(staff_copy.notes.begin()+tap_id[j]-1);
+                            break;
+                        }
+                        if(!need_tap[j]&&anjian[k]==push[j]&&staff_copy.notes.size()>0)
+                        {
+                            zt[j]=0;
+                            good++;
+                            staff_copy.notes.erase(staff_copy.notes.begin()+tap_id[j]-1);
+                            break;
+                        }
+                        if((need_tap[j]>=1||need_tap[j]<=3)&&anjian[k]==push[j])
+                        {
+                            zt[j]=2;
+                            bad++;
+                            staff_copy.notes.erase(staff_copy.notes.begin()+tap_id[j]-1);
+                            break;
+                        }
+                    }
                 }
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                cout<<need_tap[0]<<" "<<need_tap[1]<<" "<<need_tap[2]<<" "<<need_tap[3]<<endl;
+                cout<<tap_id[0]<<" "<<tap_id[1]<<" "<<tap_id[2]<<" "<<tap_id[3]<<endl;
+                cout<<"good:"<<good<<" miss:"<<miss<<" bad:"<<bad<<endl;
+
+                for(int j=0;j<4;j++)
+                {
+                    cout<<"|"<<zhuangtai[zt[j]];
+                }
+                cout<<"|         状态栏"<<endl;
+                display.print_frame(i);
+                std::this_thread::sleep_for(std::chrono::milliseconds(300));
                 clear;
             }
         }
@@ -128,7 +181,7 @@ int main()
 {
     game.staff[0].name="test";
     game.staff[0].time=100;
-    game.staff[0].notes.push_back({0,10,1});
+    game.staff[0].notes.push_back({0,20,1});
     game.staff[0].notes.push_back({10,20,2});
     game.staff[0].notes.push_back({20,30,3});
     game.staff[0].notes.push_back({30,40,4});
