@@ -62,7 +62,7 @@ struct Staff
 class Dispaly
 {
     public:
-        bool frame[100000][10][4];
+        bool frame[100000][10][5];  // track 1-4, index 0 unused
         string px[2]={"     ","-----"};
         
         void add_note_to_frame(Note n)
@@ -112,56 +112,85 @@ class Game
                 //理论上只会有4押
                 //so我大抵可以偷个懒
 
+                // 只调用一次 get_key_nb，然后用循环收集按键
                 char anjian[4];
-                anjian[0]=get_key_nb();
-                anjian[1]=get_key_nb();
-                anjian[2]=get_key_nb();
-                anjian[3]=get_key_nb();
-                // for(int j=0;j<4;j++)
-                // {
-                //     cout<<"按下"<<anjian[j]<<endl;
-                // }
+                for(int k=0;k<4;k++) anjian[k]=get_key_nb();
 
+                // need_tap[track]: 当前轨道需要击打的剩余tick数
+                // note_idx[track]: 该轨道音符在 staff_copy.notes 中的索引
                 int need_tap[4]={0,0,0,0};
-                int tap_id[4]={0,0,0,0};
+                int note_idx[4]={-1,-1,-1,-1};
                 int zt[4]={3,3,3,3};
-                for(int j=0;j<min(4,(int)staff_copy.notes.size());j++)
+
+                // 扫描前4个音符，建立轨道->音符的映射
+                int scan_cnt=min(4,(int)staff_copy.notes.size());
+                for(int j=0;j<scan_cnt;j++)
                 {
-                    need_tap[staff_copy.notes[j].track-1]=staff_copy.notes[j].etime-i;
-                    tap_id[staff_copy.notes[j].track-1]=j+1;
-                    // std::this_thread::sleep_for(std::chrono::milliseconds(100));
-                    // staff_copy.notes.erase(staff_copy.notes.begin());
+                    int tr=staff_copy.notes[j].track-1;  // 0-based track
+                    need_tap[tr]=staff_copy.notes[j].etime-i;
+                    note_idx[tr]=j;
                 }
+
+                // 收集需要删除的音符索引（从大到小排序，方便安全删除）
+                vector<int> to_erase;
 
                 for(int j=0;j<4;j++)
                 {
+                    if(note_idx[j]<0) continue;  // 该轨道没有待处理音符
+
+                    int dt=need_tap[j];
+
+                    // miss: 已经错过判定窗口 (dt < -1)
+                    if(dt<-1)
+                    {
+                        zt[j]=1;
+                        miss++;
+                        to_erase.push_back(note_idx[j]);
+                        continue;
+                    }
+
+                    // 检查是否有对应轨道的按键按下
+                    bool key_pressed=false;
                     for(int k=0;k<4;k++)
                     {
-                        if(need_tap[j]<0)
-                        {
-                            zt[j]=1;
-                            miss++;
-                            staff_copy.notes.erase(staff_copy.notes.begin()+tap_id[j]-1);
-                            break;
-                        }
-                        if(!need_tap[j]&&anjian[k]==push[j]&&staff_copy.notes.size()>0)
-                        {
-                            zt[j]=0;
-                            good++;
-                            staff_copy.notes.erase(staff_copy.notes.begin()+tap_id[j]-1);
-                            break;
-                        }
-                        if((need_tap[j]>=1||need_tap[j]<=3)&&anjian[k]==push[j])
-                        {
-                            zt[j]=2;
-                            bad++;
-                            staff_copy.notes.erase(staff_copy.notes.begin()+tap_id[j]-1);
-                            break;
-                        }
+                        if(anjian[k]==push[j]) { key_pressed=true; break; }
                     }
+
+                    if(!key_pressed) continue;  // 没按对应的键，跳过
+
+                    // good: 在判定窗口内 (dt == -1, 0, 1)
+                    if(dt>=-1 && dt<=1)
+                    {
+                        zt[j]=0;
+                        good++;
+                        to_erase.push_back(note_idx[j]);
+                    }
+                    // bad: 提前太早按了 (dt > 1 且 dt <= 3)
+                    else if(dt>1 && dt<=3)
+                    {
+                        zt[j]=2;
+                        bad++;
+                        for(int k=i;k<staff_copy.notes[j].etime;k++)
+                        {
+                            int time = i-staff_copy.notes[j].stime;
+                            int s=staff_copy.notes[j].get_speed()*time;
+
+                            display.frame[i][s][staff_copy.notes[j].track]=1;
+                        }
+                        to_erase.push_back(note_idx[j]);
+                    }
+                    // dt > 3: 太早了，不算bad也不删除
                 }
+
+                // 从大到小排序索引，安全删除
+                sort(to_erase.begin(),to_erase.end(),greater<int>());
+                for(int idx:to_erase)
+                {
+                    staff_copy.notes.erase(staff_copy.notes.begin()+idx);
+                }
+
                 cout<<need_tap[0]<<" "<<need_tap[1]<<" "<<need_tap[2]<<" "<<need_tap[3]<<endl;
-                cout<<tap_id[0]<<" "<<tap_id[1]<<" "<<tap_id[2]<<" "<<tap_id[3]<<endl;
+                cout<<note_idx[0]<<" "<<note_idx[1]<<" "<<note_idx[2]<<" "<<note_idx[3]<<endl;
                 cout<<"good:"<<good<<" miss:"<<miss<<" bad:"<<bad<<endl;
 
                 for(int j=0;j<4;j++)
@@ -170,7 +199,7 @@ class Game
                 }
                 cout<<"|         状态栏"<<endl;
                 display.print_frame(i);
-                std::this_thread::sleep_for(std::chrono::milliseconds(300));
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 clear;
             }
         }
@@ -180,11 +209,15 @@ class Game
 int main()
 {
     game.staff[0].name="test";
-    game.staff[0].time=100;
-    game.staff[0].notes.push_back({0,20,1});
+    game.staff[0].time=120;
+    game.staff[0].notes.push_back({0,10,1});
     game.staff[0].notes.push_back({10,20,2});
     game.staff[0].notes.push_back({20,30,3});
-    game.staff[0].notes.push_back({30,40,4});
+    game.staff[0].notes.push_back({30,40,4});    
+    game.staff[0].notes.push_back({50,60,1});
+    game.staff[0].notes.push_back({60,70,2});
+    game.staff[0].notes.push_back({70,90,3});
+    game.staff[0].notes.push_back({90,100,4});
     game.start(0);
     return 0;
 }
