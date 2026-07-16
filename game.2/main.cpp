@@ -123,7 +123,8 @@ class Game
                 return;
             }
             Staff staff_tmp;
-            fin>>staff_tmp.name>>staff_tmp.time;
+            getline(fin,staff_tmp.name);
+            fin>>staff_tmp.time;
             int stime,etime,track;
             while(fin>>stime>>etime>>track)
             {
@@ -398,7 +399,10 @@ class Game
             }
             clear;
             cout<<"游玩结束"<<endl;
-            cout<<"good:"<<good<<" miss:"<<miss<<" bad:"<<bad<<endl;
+            cout<<"谱面："<<staff[staff_num].name<<endl;
+            cout<<"谱面长度："<<staff[staff_num].time<<"Z"<<endl;
+            cout<<"谱面物量"<<staff[staff_num].notes.size()<<endl;
+            cout<<"成绩"<<endl<<"good:"<<good<<" miss:"<<miss<<" bad:"<<bad<<endl;
             cout<<"按下任意键继续"<<endl;
             GETCH;
         }
