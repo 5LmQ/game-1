@@ -101,6 +101,7 @@ class Dispaly
                 cout<<"|"<<endl;
             }
             cout<<"-------------------------         判定线"<<endl;
+            cout<<"   F     G     H     J   "<<endl;
         }
 }display;
 
@@ -136,6 +137,7 @@ class Game
             cout<<"谱面名称："<<staff_tmp.name<<endl;
             cout<<"谱面时间："<<staff_tmp.time<<endl;
             cout<<"谱面音符数量："<<staff_tmp.notes.size()<<endl;
+            char a=GETCH;
             cout<<"按任意键继续"<<endl;
             GETCH;
             clear;
@@ -150,9 +152,10 @@ class Game
             if(a=='1')
             {
                 clear;
-                cout<<"输入谱面文件地址(绝对路径)"<<endl;
-                string file_path;
-                cin>>file_path;
+                cout<<"输入谱面文件名"<<endl;
+                string file_name;
+                cin>>file_name;
+                string file_path="staff/"+file_name+".txt";
                 upload_staff(file_path);
                 clear;
             }
