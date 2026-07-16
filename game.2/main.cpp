@@ -396,6 +396,11 @@ class Game
                 std::this_thread::sleep_for(std::chrono::milliseconds(50));
                 clear;
             }
+            clear;
+            cout<<"游玩结束"<<endl;
+            cout<<"good:"<<good<<" miss:"<<miss<<" bad:"<<bad<<endl;
+            cout<<"按下任意键继续"<<endl;
+            GETCH;
         }
         
 }game;
