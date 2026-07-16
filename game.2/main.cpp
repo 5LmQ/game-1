@@ -136,13 +136,6 @@ class Game
             cout<<"谱面名称："<<staff_tmp.name<<endl;
             cout<<"谱面时间："<<staff_tmp.time<<endl;
             cout<<"谱面音符数量："<<staff_tmp.notes.size()<<endl;
-            cout<<"按任意键请确认。    按q放弃"<<endl;
-            char a=GETCH;
-            if(a=='q')
-            {
-                return;
-            }
-            cout<<"谱面上传成功"<<endl;
             cout<<"按任意键继续"<<endl;
             GETCH;
             clear;
