@@ -10,3 +10,4 @@
 #include <random>
 #include <cstdlib>
 #include <clocale>
+#include <fstream>

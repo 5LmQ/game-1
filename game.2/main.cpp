@@ -5,6 +5,7 @@ using namespace std;
     #include <conio.h>
     #include <windows.h>
     // Windows: _kbhit() 检测是否有键，非阻塞
+    #define GETCH _getch()
     int get_key_nb() {
         if (_kbhit()) return _getch();
         return -1;   // 无按键
@@ -34,6 +35,18 @@ using namespace std;
         return ch;
     }
     #define clear system("clear")
+    char getch_char() {
+        struct termios oldt, newt;
+        char ch;
+        tcgetattr(STDIN_FILENO, &oldt);
+        newt=oldt;
+        newt.c_lflag &= ~(ICANON | ECHO);
+        tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+        ch=getchar();
+        tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+        return ch;
+    }
+    #define GETCH getch_char()
 #endif
 
 char push[5]={'f','g','h','j'};
@@ -95,8 +108,179 @@ class Dispaly
 class Game
 {
     public:
-        Staff staff[100];
-        void start(int staff_num)
+        vector<Staff> staff;
+
+        void upload_staff(string file_path)
+        {
+            ifstream fin(file_path);
+            if(!fin)
+            {
+                cout<<"谱面文件打开失败"<<endl;
+                cout<<"按任意键返回"<<endl;
+                GETCH;
+                clear;
+                return;
+            }
+            Staff staff_tmp;
+            fin>>staff_tmp.name>>staff_tmp.time;
+            while(fin>>staff_tmp.notes[0].stime>>staff_tmp.notes[0].etime>>staff_tmp.notes[0].track)
+            {
+                staff_tmp.notes.push_back(staff_tmp.notes[0]);
+            }
+            staff.push_back(staff_tmp);
+            fin.close();
+            cout<<"谱面上传成功"<<endl;
+            cout<<"谱面名称："<<staff_tmp.name<<endl;
+            cout<<"谱面时间："<<staff_tmp.time<<endl;
+            cout<<"谱面音符数量："<<staff_tmp.notes.size()<<endl;
+            cout<<"按任意键请确认。    按q放弃"<<endl;
+            char a=GETCH;
+            clear;
+            if(a=='q')
+            {
+                return;
+            }
+            cout<<"谱面上传成功"<<endl;
+            staff.push_back(staff_tmp);
+        }
+
+        void start()
+        {
+            cout<<"1。存入谱面"<<endl;
+            cout<<"2。删除谱面"<<endl;
+            cout<<"3。游玩谱面"<<endl;
+            char a=GETCH;
+            if(a=='1')
+            {
+                clear;
+                cout<<"输入谱面文件地址(绝对路径)"<<endl;
+                string file_path;
+                cin>>file_path;
+                upload_staff(file_path);
+                clear;
+            }
+            else if(a=='2')
+            {
+                clear;
+                int page=0;
+                int maxpage=staff.size()/5+1;
+                while(1)
+                {
+
+                    for(int i=0;i<5;i++)
+                    {
+                        cout<<i+1<<"。"<<staff[i+page*5].name<<endl;
+                    }
+
+                    cout<<"当前页数："<<page+1<<"/"<<maxpage<<endl;
+                    cout<<"z上一页.  ";
+                    cout<<"x下一页.  ";
+                    cout<<"q返回.   "<<endl;
+                    cout<<"1～5删除谱面"<<endl;
+                    char a=GETCH;
+                    if(a>='1'&&a<='5')
+                    {
+                        if(staff.size()>=a-'0'+page*5)
+                        {
+                            cout<<"是否删除谱面"<<staff[a-'0'-1+page*5].name<<"？y/n"<<endl;
+                            char b=GETCH;
+                            if(b=='y')
+                            {
+                                staff[a-'0'-1+page*5].name="";
+                                staff.erase(staff.begin()+(a-'0'-1+page*5));
+                                maxpage=staff.size()/5+1;
+                                page=0;
+                                cout<<"删除成功"<<endl;
+                                cout<<"按任意键继续"<<endl;
+                                GETCH;
+                                clear;
+                            }
+                        }
+                    }
+                    else if(a=='z')
+                    {
+                        if(page>0)
+                        {
+                            page--;
+                        }
+                    }
+                    else if(a=='x')
+                    {
+                        if(page<maxpage-1)
+                        {
+                            page++;
+                        }
+                    }
+                    else if(a=='q')
+                    {
+                        clear;
+                        break;
+                    }
+                    else
+                    {
+
+                        continue;
+                    }
+                    clear;
+                }
+            }
+             else if(a=='3')
+            {
+                memset(display.frame,0,sizeof(display.frame));
+                clear;
+                int page=0;
+                int maxpage=staff.size()/5+1;
+                while(1)
+                {
+
+                    for(int i=0;i<5;i++)
+                    {
+                        cout<<i+1<<"。"<<staff[i+page*5].name<<endl;
+                    }
+
+                    cout<<"当前页数："<<page+1<<"/"<<maxpage<<endl;
+                    cout<<"z上一页.  ";
+                    cout<<"x下一页.  ";
+                    cout<<"q返回.   "<<endl;
+                    cout<<"1～5游玩谱面"<<endl;
+                    char a=GETCH;
+                    if(a>='1'&&a<='5')
+                    {
+                        if(staff.size()>=a-'0'+page*5)
+                        {
+                            cout<<"开始游玩"<<staff[a-'0'-1+page*5].name<<endl;
+                            start_play(a-'0'-1+page*5);
+                        }
+                    }
+                    else if(a=='z')
+                    {
+                        if(page>0)
+                        {
+                            page--;
+                        }
+                    }
+                    else if(a=='x')
+                    {
+                        if(page<maxpage-1)
+                        {
+                            page++;
+                        }
+                    }
+                    else if(a=='q')
+                    {
+                        clear;
+                        break;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                    clear;
+                }
+            }
+        }
+
+        void start_play(int staff_num)
         {
             string zhuangtai[4]={" good"," miss"," bad ","     "};
             int good=0,miss=0,bad=0;
@@ -208,16 +392,16 @@ class Game
 
 int main()
 {
-    game.staff[0].name="test";
-    game.staff[0].time=120;
-    game.staff[0].notes.push_back({0,10,1});
-    game.staff[0].notes.push_back({10,20,2});
-    game.staff[0].notes.push_back({20,30,3});
-    game.staff[0].notes.push_back({30,40,4});    
-    game.staff[0].notes.push_back({50,60,1});
-    game.staff[0].notes.push_back({60,70,2});
-    game.staff[0].notes.push_back({70,90,3});
-    game.staff[0].notes.push_back({90,100,4});
-    game.start(0);
+    Staff test;
+    test.name="test";
+    test.time=120;
+    test.notes={{0,10,1},{10,20,2},{20,30,3},{30,40,4},
+                {50,70,1},{60,70,2},{70,90,3},{90,100,4}};
+    game.staff.push_back(test);   // 用 push_back，不要 staff[0]
+
+    while(true)
+    {
+        game.start();
+    }
     return 0;
 }
