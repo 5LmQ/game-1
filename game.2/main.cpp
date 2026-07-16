@@ -113,35 +113,42 @@ class Game
         void upload_staff(string file_path)
         {
             ifstream fin(file_path);
-            if(!fin)
-            {
-                cout<<"谱面文件打开失败"<<endl;
-                cout<<"按任意键返回"<<endl;
-                GETCH;
-                clear;
-                return;
-            }
+            // if(!fin)
+            // {
+            //     cout<<"谱面文件打开失败"<<endl;
+            //     cout<<"按任意键返回"<<endl;
+            //     GETCH;
+            //     clear;
+            //     return;
+            // }
+            cout<<"谱面文件打开成功"<<endl;
+            std::this_thread::sleep_for(std::chrono::microseconds(100));
             Staff staff_tmp;
             fin>>staff_tmp.name>>staff_tmp.time;
-            while(fin>>staff_tmp.notes[0].stime>>staff_tmp.notes[0].etime>>staff_tmp.notes[0].track)
+            int stime,etime,track;
+            while(fin>>stime>>etime>>track)
             {
-                staff_tmp.notes.push_back(staff_tmp.notes[0]);
+                staff_tmp.notes.push_back({stime,etime,track});
             }
-            staff.push_back(staff_tmp);
+
             fin.close();
+            staff.push_back(staff_tmp);
+
             cout<<"谱面上传成功"<<endl;
             cout<<"谱面名称："<<staff_tmp.name<<endl;
             cout<<"谱面时间："<<staff_tmp.time<<endl;
             cout<<"谱面音符数量："<<staff_tmp.notes.size()<<endl;
             cout<<"按任意键请确认。    按q放弃"<<endl;
+            std::this_thread::sleep_for(std::chrono::microseconds(100));
             char a=GETCH;
-            clear;
             if(a=='q')
             {
                 return;
             }
             cout<<"谱面上传成功"<<endl;
-            staff.push_back(staff_tmp);
+            cout<<"按任意键继续"<<endl;
+            GETCH;
+            clear;
         }
 
         void start()
@@ -218,7 +225,7 @@ class Game
                     }
                     else
                     {
-
+                        clear;
                         continue;
                     }
                     clear;
@@ -226,7 +233,6 @@ class Game
             }
              else if(a=='3')
             {
-                memset(display.frame,0,sizeof(display.frame));
                 clear;
                 int page=0;
                 int maxpage=staff.size()/5+1;
@@ -273,15 +279,21 @@ class Game
                     }
                     else
                     {
+                        clear;
                         continue;
                     }
                     clear;
                 }
             }
+            else
+            {
+                clear;
+            }
         }
 
         void start_play(int staff_num)
         {
+            memset(display.frame,0,sizeof(display.frame));
             string zhuangtai[4]={" good"," miss"," bad ","     "};
             int good=0,miss=0,bad=0;
             Staff staff_copy=staff[staff_num];
@@ -311,8 +323,11 @@ class Game
                 for(int j=0;j<scan_cnt;j++)
                 {
                     int tr=staff_copy.notes[j].track-1;  // 0-based track
-                    need_tap[tr]=staff_copy.notes[j].etime-i;
-                    note_idx[tr]=j;
+                    if(note_idx[tr] < 0)                 // 只取该轨道最早出现的音符，不覆盖
+                    {
+                        need_tap[tr]=staff_copy.notes[j].etime-i;
+                        note_idx[tr]=j;
+                    }
                 }
 
                 // 收集需要删除的音符索引（从大到小排序，方便安全删除）
@@ -325,7 +340,7 @@ class Game
                     int dt=need_tap[j];
 
                     // miss: 已经错过判定窗口 (dt < -1)
-                    if(dt<-1)
+                    if(dt<-2)
                     {
                         zt[j]=1;
                         miss++;
@@ -343,14 +358,14 @@ class Game
                     if(!key_pressed) continue;  // 没按对应的键，跳过
 
                     // good: 在判定窗口内 (dt == -1, 0, 1)
-                    if(dt>=-1 && dt<=1)
+                    if(dt>=-2 && dt<=2)
                     {
                         zt[j]=0;
                         good++;
                         to_erase.push_back(note_idx[j]);
                     }
                     // bad: 提前太早按了 (dt > 1 且 dt <= 3)
-                    else if(dt>1 && dt<=3)
+                    else if(dt>2 && dt<=6)
                     {
                         zt[j]=2;
                         bad++;
@@ -365,6 +380,8 @@ class Game
                     }
                     // dt > 3: 太早了，不算bad也不删除
                 }
+
+                //容我记录一下我的发现，有部分音符由于我按的久会先后判定成good、miss，然后连续pop两个音符，使后面的音符无法判定
 
                 // 从大到小排序索引，安全删除
                 sort(to_erase.begin(),to_erase.end(),greater<int>());
@@ -383,7 +400,7 @@ class Game
                 }
                 cout<<"|         状态栏"<<endl;
                 display.print_frame(i);
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                std::this_thread::sleep_for(std::chrono::milliseconds(50));
                 clear;
             }
         }
@@ -394,9 +411,9 @@ int main()
 {
     Staff test;
     test.name="test";
-    test.time=120;
-    test.notes={{0,10,1},{10,20,2},{20,30,3},{30,40,4},
-                {50,70,1},{60,70,2},{70,90,3},{90,100,4}};
+    test.time=240;
+    test.notes={{0,20,1},{20,40,2},{40,60,3},{60,80,4},
+                {100,140,1},{120,140,2},{140,180,3},{180,200,4}};
     game.staff.push_back(test);   // 用 push_back，不要 staff[0]
 
     while(true)
