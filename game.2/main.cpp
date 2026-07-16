@@ -113,16 +113,14 @@ class Game
         void upload_staff(string file_path)
         {
             ifstream fin(file_path);
-            // if(!fin)
-            // {
-            //     cout<<"谱面文件打开失败"<<endl;
-            //     cout<<"按任意键返回"<<endl;
-            //     GETCH;
-            //     clear;
-            //     return;
-            // }
-            cout<<"谱面文件打开成功"<<endl;
-            std::this_thread::sleep_for(std::chrono::microseconds(100));
+            if(!fin)
+            {
+                cout<<"谱面文件打开失败"<<endl;
+                cout<<"按任意键返回"<<endl;
+                GETCH;
+                clear;
+                return;
+            }
             Staff staff_tmp;
             fin>>staff_tmp.name>>staff_tmp.time;
             int stime,etime,track;
@@ -139,7 +137,6 @@ class Game
             cout<<"谱面时间："<<staff_tmp.time<<endl;
             cout<<"谱面音符数量："<<staff_tmp.notes.size()<<endl;
             cout<<"按任意键请确认。    按q放弃"<<endl;
-            std::this_thread::sleep_for(std::chrono::microseconds(100));
             char a=GETCH;
             if(a=='q')
             {
