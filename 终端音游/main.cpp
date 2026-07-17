@@ -430,11 +430,13 @@ class Game
 
 int main()
 {
-
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
     #ifdef _WIN32
         SetConsoleOutputCP(65001);  // Windows GBK
         SetConsoleCP(65001);
-        system("chcp 65001");
+        //system("chcp 65001");
     #else
         setlocale(LC_ALL, "");    // Linux/Mac UTF-8
     #endif
