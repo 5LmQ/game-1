@@ -36,6 +36,7 @@
 #include <initializer_list>
 #include <fstream>
 #include <sstream>
+#include <array>
 
 
 //要不是clang不支持   算了这已经是祖传文件了
