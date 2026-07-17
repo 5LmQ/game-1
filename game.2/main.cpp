@@ -102,6 +102,7 @@ class Dispaly
             }
             cout<<"-------------------------         判定线"<<endl;
             cout<<"   F     G     H     J   "<<endl;
+            cout<<"按q退出"<<endl;
         }
 }display;
 
@@ -305,6 +306,10 @@ class Game
                 // 只调用一次 get_key_nb，然后用循环收集按键
                 char anjian[4];
                 for(int k=0;k<4;k++) anjian[k]=get_key_nb();
+                if(anjian[0]=='q'||anjian[1]=='q'||anjian[2]=='q'||anjian[3]=='q')
+                {
+                    break;
+                }
 
                 // need_tap[track]: 当前轨道需要击打的剩余tick数
                 // note_idx[track]: 该轨道音符在 staff_copy.notes 中的索引
