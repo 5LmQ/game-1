@@ -3,3 +3,5 @@ main
 game
 main.exe
 game.exe
+*.dSYM
+终端音游/staff
