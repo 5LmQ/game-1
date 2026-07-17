@@ -75,7 +75,7 @@ struct Staff
 class Dispaly
 {
     public:
-        bool frame[100000][10][5];  // track 1-4, index 0 unused
+        bool frame[1000000][10][5];  // track 1-4, index 0 unused
         string px[2]={"     ","-----"};
         
         void add_note_to_frame(Note n)
@@ -339,7 +339,7 @@ class Game
                     int dt=need_tap[j];
 
                     // miss: 已经错过判定窗口 (dt < -1)
-                    if(dt<-2)
+                    if(dt<-2*2)
                     {
                         zt[j]=1;
                         miss++;
@@ -357,14 +357,14 @@ class Game
                     if(!key_pressed) continue;  // 没按对应的键，跳过
 
                     // good: 在判定窗口内 (dt == -1, 0, 1)
-                    if(dt>=-2 && dt<=2)
+                    if(dt>=-2*2 && dt<=2*2)
                     {
                         zt[j]=0;
                         good++;
                         to_erase.push_back(note_idx[j]);
                     }
                     // bad: 提前太早按了 (dt > 1 且 dt <= 3)
-                    else if(dt>2 && dt<=6)
+                    else if(dt>2*2 && dt<=6*2)
                     {
                         zt[j]=2;
                         bad++;
@@ -399,7 +399,7 @@ class Game
                 }
                 cout<<"|         状态栏"<<endl;
                 display.print_frame(i);
-                std::this_thread::sleep_for(std::chrono::milliseconds(50));
+                std::this_thread::sleep_for(std::chrono::milliseconds(25));
                 clear;
             }
             clear;
