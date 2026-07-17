@@ -4,19 +4,25 @@ using namespace std;
 #ifdef _WIN32
     #include <conio.h>
     #include <windows.h>
-    // Windows: _kbhit() 检测是否有键，非阻塞
     #define GETCH _getch()
     int get_key_nb() {
         if (_kbhit()) return _getch();
-        return -1;   // 无按键
+        return -1;
     }
+    void enable_vt100() {
+        HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+        DWORD mode = 0;
+        GetConsoleMode(hOut, &mode);
+        SetConsoleMode(hOut, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+    }
+    void hide_cursor() { printf("\033[?25l"); }
+    void show_cursor() { printf("\033[?25h"); }
     #define clear system("cls")
+    #define move_home() printf("\033[H")
 #else
-    
     #include <termios.h>
     #include <unistd.h>
     #include <fcntl.h>
-    // Linux/Mac: 把 stdin 设为非阻塞 + 非规范模式
     int get_key_nb() {
         struct termios oldt, newt;
         tcgetattr(STDIN_FILENO, &oldt);
@@ -25,16 +31,20 @@ using namespace std;
         tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 
         int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
-        fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);  // 非阻塞
+        fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
 
         int ch = getchar();
-        if (ch == EOF) ch = -1;   // 无按键
+        if (ch == EOF) ch = -1;
 
-        fcntl(STDIN_FILENO, F_SETFL, flags);   // 恢复原 flags
+        fcntl(STDIN_FILENO, F_SETFL, flags);
         tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
         return ch;
     }
+    void enable_vt100() {}
+    void hide_cursor() { printf("\033[?25l"); }
+    void show_cursor() { printf("\033[?25h"); }
     #define clear system("clear")
+    #define move_home() printf("\033[H")
     char getch_char() {
         struct termios oldt, newt;
         char ch;
@@ -303,7 +313,8 @@ class Game
         void start_play(int staff_num)
         {
             memset(display.frame,0,sizeof(display.frame));
-            string zhuangtai[4]={" good"," miss"," bad ","     "};
+            const char* zhuangtai[4]={" good"," miss"," bad ","     "};
+            const char* px_cstr[2]={"     ","-----"};
             int good=0,miss=0,bad=0;
             Staff staff_copy=staff[staff_num];
             sort(staff_copy.notes.begin(),staff_copy.notes.end(),[](Note a,Note b){return a.etime<b.etime;});
@@ -311,13 +322,21 @@ class Game
             {
                 display.add_note_to_frame(n);
             }
+
+            enable_vt100();
+            hide_cursor();
+            printf("\033[2J\033[H");
+            fflush(stdout);
+
+            #ifdef _WIN32
+            HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+            DWORD written;
+            #endif
+
+            auto next_frame = std::chrono::steady_clock::now();
+
             for(int i=0;i<staff_copy.time;i++)
             {
-
-                //理论上只会有4押
-                //so我大抵可以偷个懒
-
-                // 只调用一次 get_key_nb，然后用循环收集按键
                 char anjian[4];
                 for(int k=0;k<4;k++) anjian[k]=get_key_nb();
                 if(anjian[0]=='q'||anjian[1]=='q'||anjian[2]=='q'||anjian[3]=='q')
@@ -325,34 +344,29 @@ class Game
                     break;
                 }
 
-                // need_tap[track]: 当前轨道需要击打的剩余tick数
-                // note_idx[track]: 该轨道音符在 staff_copy.notes 中的索引
                 int need_tap[4]={0,0,0,0};
                 int note_idx[4]={-1,-1,-1,-1};
                 int zt[4]={3,3,3,3};
 
-                // 扫描前4个音符，建立轨道->音符的映射
                 int scan_cnt=min(4,(int)staff_copy.notes.size());
                 for(int j=0;j<scan_cnt;j++)
                 {
-                    int tr=staff_copy.notes[j].track-1;  // 0-based track
-                    if(note_idx[tr] < 0)                 // 只取该轨道最早出现的音符，不覆盖
+                    int tr=staff_copy.notes[j].track-1;
+                    if(note_idx[tr] < 0)
                     {
                         need_tap[tr]=staff_copy.notes[j].etime-i;
                         note_idx[tr]=j;
                     }
                 }
 
-                // 收集需要删除的音符索引（从大到小排序，方便安全删除）
                 vector<int> to_erase;
 
                 for(int j=0;j<4;j++)
                 {
-                    if(note_idx[j]<0) continue;  // 该轨道没有待处理音符
+                    if(note_idx[j]<0) continue;
 
                     int dt=need_tap[j];
 
-                    // miss: 已经错过判定窗口 (dt < -1)
                     if(dt<-2*2)
                     {
                         zt[j]=1;
@@ -361,23 +375,20 @@ class Game
                         continue;
                     }
 
-                    // 检查是否有对应轨道的按键按下
                     bool key_pressed=false;
                     for(int k=0;k<4;k++)
                     {
                         if(anjian[k]==push[j]) { key_pressed=true; break; }
                     }
 
-                    if(!key_pressed) continue;  // 没按对应的键，跳过
+                    if(!key_pressed) continue;
 
-                    // good: 在判定窗口内 (dt == -1, 0, 1)
                     if(dt>=-2*2 && dt<=2*2)
                     {
                         zt[j]=0;
                         good++;
                         to_erase.push_back(note_idx[j]);
                     }
-                    // bad: 提前太早按了 (dt > 1 且 dt <= 3)
                     else if(dt>2*2 && dt<=6*2)
                     {
                         zt[j]=2;
@@ -386,37 +397,57 @@ class Game
                         {
                             int time = i-staff_copy.notes[j].stime;
                             int s=staff_copy.notes[j].get_speed()*time;
-
                             display.frame[i][s][staff_copy.notes[j].track]=1;
                         }
                         to_erase.push_back(note_idx[j]);
                     }
-                    // dt > 3: 太早了，不算bad也不删除
                 }
 
-                //容我记录一下我的发现，有部分音符由于我按的久会先后判定成good、miss，然后连续pop两个音符，使后面的音符无法判定
-
-                // 从大到小排序索引，安全删除
                 sort(to_erase.begin(),to_erase.end(),greater<int>());
                 for(int idx:to_erase)
                 {
                     staff_copy.notes.erase(staff_copy.notes.begin()+idx);
                 }
 
-                cout<<need_tap[0]<<" "<<need_tap[1]<<" "<<need_tap[2]<<" "<<need_tap[3]<<endl;
-                cout<<note_idx[0]<<" "<<note_idx[1]<<" "<<note_idx[2]<<" "<<note_idx[3]<<endl;
-                cout<<"good:"<<good<<" miss:"<<miss<<" bad:"<<bad<<endl;
+                char buf[4096];
+                int len = 0;
+
+                len += sprintf(buf+len, "\033[H");
+                len += sprintf(buf+len, "%d %d %d %d\033[K\n",
+                    need_tap[0], need_tap[1], need_tap[2], need_tap[3]);
+                len += sprintf(buf+len, "%d %d %d %d\033[K\n",
+                    note_idx[0], note_idx[1], note_idx[2], note_idx[3]);
+                len += sprintf(buf+len, "good:%d miss:%d bad:%d\033[K\n", good, miss, bad);
 
                 for(int j=0;j<4;j++)
+                    len += sprintf(buf+len, "|%s", zhuangtai[zt[j]]);
+                len += sprintf(buf+len, "|         \xe7\x8a\xb6\xe6\x80\x81\xe6\xa0\x8f\033[K\n");
+
+                len += sprintf(buf+len, "-------------------------\033[K\n");
+                for(int row=0;row<10;row++)
                 {
-                    cout<<"|"<<zhuangtai[zt[j]];
+                    for(int col=1;col<=4;col++)
+                        len += sprintf(buf+len, "|%s", px_cstr[display.frame[i][row][col]]);
+                    len += sprintf(buf+len, "|\033[K\n");
                 }
-                cout<<"|         状态栏"<<endl;
-                display.print_frame(i);
-                std::this_thread::sleep_for(std::chrono::milliseconds(25));
-                clear;
+                len += sprintf(buf+len, "-------------------------         \xe5\x88\xa4\xe5\xae\x9a\xe7\xba\xbf\033[K\n");
+                len += sprintf(buf+len, "   F     G     H     J   \033[K\n");
+                len += sprintf(buf+len, "\xe6\x8c\x89q\xe9\x80\x80\xe5\x87\xba\033[K\n");
+                len += sprintf(buf+len, "\033[J");
+
+                #ifdef _WIN32
+                WriteConsoleA(hOut, buf, (DWORD)len, &written, NULL);
+                #else
+                ::write(STDOUT_FILENO, buf, len);
+                #endif
+
+                next_frame += std::chrono::milliseconds(8);
+                std::this_thread::sleep_until(next_frame);
             }
-            clear;
+
+            show_cursor();
+            printf("\033[2J\033[H");
+            fflush(stdout);
             cout<<"游玩结束"<<endl;
             cout<<"谱面："<<staff[staff_num].name<<endl;
             cout<<"谱面长度："<<staff[staff_num].time<<"Z"<<endl;
