@@ -411,6 +411,14 @@ class Game
 
 int main()
 {
+
+    #ifdef _WIN32
+        SetConsoleOutputCP(65001);  // Windows GBK
+        SetConsoleCP(65001);
+    #else
+        setlocale(LC_ALL, "");    // Linux/Mac UTF-8
+    #endif
+
     Staff test;
     test.name="test";
     test.time=240;
