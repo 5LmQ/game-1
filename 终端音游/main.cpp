@@ -9,6 +9,9 @@ using namespace std;
         if (_kbhit()) return _getch();
         return -1;
     }
+    #ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
+    #define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
+    #endif
     void enable_vt100() {
         HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
         DWORD mode = 0;
