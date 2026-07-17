@@ -147,9 +147,9 @@ class Game
 
         void start()
         {
-            cout<<"1。存入谱面"<<endl;
-            cout<<"2。删除谱面"<<endl;
-            cout<<"3。游玩谱面"<<endl;
+            cout<<"1.存入谱面"<<endl;
+            cout<<"2.删除谱面"<<endl;
+            cout<<"3.游玩谱面"<<endl;
             char a=GETCH;
             if(a=='1')
             {
@@ -171,7 +171,14 @@ class Game
 
                     for(int i=0;i<5;i++)
                     {
-                        cout<<i+1<<"。"<<staff[i+page*5].name<<endl;
+                        if(i+page*5>=staff.size())
+                        {
+                            cout<<i+1<<".无"<<endl;
+                        }
+                        else
+                        {
+                            cout<<i+1<<"."<<staff[i+page*5].name<<endl;
+                        }
                     }
 
                     cout<<"当前页数："<<page+1<<"/"<<maxpage<<endl;
@@ -236,7 +243,14 @@ class Game
 
                     for(int i=0;i<5;i++)
                     {
-                        cout<<i+1<<"。"<<staff[i+page*5].name<<endl;
+                        if(i+page*5>=staff.size())
+                        {
+                            cout<<i+1<<".无"<<endl;
+                        }
+                        else
+                        {
+                            cout<<i+1<<"."<<staff[i+page*5].name<<endl;
+                        }
                     }
 
                     cout<<"当前页数："<<page+1<<"/"<<maxpage<<endl;
@@ -420,6 +434,7 @@ int main()
     #ifdef _WIN32
         SetConsoleOutputCP(65001);  // Windows GBK
         SetConsoleCP(65001);
+        system("chcp 65001");
     #else
         setlocale(LC_ALL, "");    // Linux/Mac UTF-8
     #endif
