@@ -372,6 +372,8 @@ class Game
 
             auto next_frame = std::chrono::steady_clock::now();
             int total_notes = staff_copy.notes.size();
+            const double perfcet_note_score=1000000.0/total_notes;
+            double score=0;
 
             for(int i=0;i<staff_copy.time;i++)
             {
@@ -400,10 +402,11 @@ class Game
 
                 vector<int> to_erase;
 
-                const int PERFECT_WINDOW = 5;
+                const int PERFECT_WINDOW_up = 7;
+                const int PERFECT_WINDOW_down = -5;
                 const int GOOD_WINDOW = 14;
                 const int BAD_WINDOW = 22;
-                const int MISS_WINDOW = 10;
+                const int MISS_WINDOW = 5;
 
                 for(int j=0;j<4;j++)
                 {
@@ -419,24 +422,26 @@ class Game
 
                     if(key_pressed)
                     {
-                        int abs_dt = dt < 0 ? -dt : dt;
-                        if(abs_dt <= PERFECT_WINDOW)
+                        if(dt <= PERFECT_WINDOW_up&&dt>=PERFECT_WINDOW_down)
                         {
                             zt[j]=0;
                             perfcet++;
                             to_erase.push_back(note_idx[j]);
+                            score+=perfcet_note_score;
                         }
                         else if(dt <= GOOD_WINDOW)
                         {
                             zt[j]=3;
                             good++;
                             to_erase.push_back(note_idx[j]);
+                            score+=perfcet_note_score*0.7;
                         }
                         else if(dt <= BAD_WINDOW)
                         {
                             zt[j]=2;
                             bad++;
                             to_erase.push_back(note_idx[j]);
+                            score+=perfcet_note_score*0.2;
                         }
                     }
                     else if(dt < -MISS_WINDOW)
@@ -467,7 +472,7 @@ class Game
                 len += snprintf(buf.data() + len, buf_size - len, " PERFECT:%-4d GOOD:%-4d BAD:%-4d MISS:%-4d\033[K\n", perfcet, good, bad, miss);
                 len += snprintf(buf.data() + len, buf_size - len, "\033[K\n");
                 //分数
-                len += snprintf(buf.data() + len, buf_size - len, " 分数:%-4d\033[K\n", (perfcet*3+good*1)*100/(total_notes*3));
+                len += snprintf(buf.data() + len, buf_size - len, " 分数:%-4d\033[K\n", (int)score);
 
                 // 状态判定显示
                 len += snprintf(buf.data() + len, buf_size - len, " ");
@@ -505,8 +510,7 @@ class Game
             cout<<" 成绩：  PERFECT:"<<perfcet<<" GOOD:"<<good<<" BAD:"<<bad<<" MISS:"<<miss<<endl;
             if(total_notes>0)
             {
-                int score = (perfcet*3+good*1)*100/(total_notes*3);
-                cout<<" 得分：  "<<score<<"/100"<<endl;
+                cout<<" 得分：  "<<(int)score<<"/1000000"<<endl;
             }
             cout<<"=============================="<<endl;
             cout<<endl<<"按任意键继续..."<<endl;
@@ -528,7 +532,7 @@ int main()
     #else
         setlocale(LC_ALL, "");    // Linux/Mac UTF-8
     #endif
-
+    clear;
     while(true)
     {
         game.start();
