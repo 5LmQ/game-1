@@ -9,6 +9,9 @@ void signal_handler(int sig) {
     exit(0);
 }
 
+
+#define endl "\n"
+
 #ifdef _WIN32
     #include <conio.h>
     #include <windows.h>
@@ -118,20 +121,24 @@ class Dispaly
             }
         }
 
-        void print_frame(int time)
+        string get_frame_str(int time)
         {
-            cout<<"-------------------------"<<endl;
+            string s;
+            s.reserve(512);
+            s += "-------------------------\n";
             for(int i=0;i<10;i++)
             {
                 for(int j=1;j<=4;j++)
                 {
-                    cout<<"|"<<px[frame[time][i][j]];
+                    s += "|";
+                    s += px[frame[time][i][j]];
                 }
-                cout<<"|"<<endl;
+                s += "|\n";
             }
-            cout<<"-------------------------         判定线"<<endl;
-            cout<<"   F     G     H     J   "<<endl;
-            cout<<"按q退出"<<endl;
+            s += "-------------------------         判定线\n";
+            s += "   F     G     H     J   \n";
+            s += "按q退出\n";
+            return s;
         }
 }display;
 
@@ -342,9 +349,10 @@ class Game
 
         void start_play(int staff_num)
         {
+            clear;
             memset(display.frame,0,sizeof(display.frame));
             const char* zhuangtai[4]={"GOOD ","MISS ","BAD  ","     "};
-            const char* px_cstr[2]={"     ","#####"};
+            const char* px_cstr[2]={"     ","-----"};
             int good=0,miss=0,bad=0;
             Staff staff_copy=staff[staff_num];
             sort(staff_copy.notes.begin(),staff_copy.notes.end(),[](Note a,Note b){return a.etime<b.etime;});
@@ -440,41 +448,36 @@ class Game
                     staff_copy.notes.erase(staff_copy.notes.begin()+idx);
                 }
 
-                char buf[4096];
+                string frame_str = display.get_frame_str(i);
+
+                // 预估缓冲区大小：头部信息 + frame_str + ANSI 转义序列
+                size_t buf_size = 512 + frame_str.size();
+                vector<char> buf(buf_size);
                 int len = 0;
 
-                len += sprintf(buf+len, "\033[H");
+                len += snprintf(buf.data() + len, buf_size - len, "\033[H");
                 // 谱面信息栏
-                len += sprintf(buf+len, " %-20s  %d/%d frames\033[K\n",
+                len += snprintf(buf.data() + len, buf_size - len, " %-20s  %d/%d frames\033[K\n",
                     staff[staff_num].name.c_str(), i, staff_copy.time);
-                len += sprintf(buf+len, " GOOD:%-4d  BAD:%-4d  MISS:%-4d\033[K\n", good, bad, miss);
-                len += sprintf(buf+len, "\033[K\n");
+                len += snprintf(buf.data() + len, buf_size - len, " GOOD:%-4d  BAD:%-4d  MISS:%-4d\033[K\n", good, bad, miss);
+                len += snprintf(buf.data() + len, buf_size - len, "\033[K\n");
 
                 // 状态判定显示
-                len += sprintf(buf+len, " ");
+                len += snprintf(buf.data() + len, buf_size - len, " ");
                 for(int j=0;j<4;j++)
-                    len += sprintf(buf+len, " %s ", zhuangtai[zt[j]]);
-                len += sprintf(buf+len, "\033[K\n");
+                    len += snprintf(buf.data() + len, buf_size - len, " %s ", zhuangtai[zt[j]]);
+                len += snprintf(buf.data() + len, buf_size - len, "\033[K\n");
 
-                // 游戏区域
-                len += sprintf(buf+len, " +-----+-----+-----+-----+\033[K\n");
-                for(int row=0;row<10;row++)
-                {
-                    len += sprintf(buf+len, " |");
-                    for(int col=1;col<=4;col++)
-                        len += sprintf(buf+len, "%s|", px_cstr[display.frame[i][row][col]]);
-                    len += sprintf(buf+len, "\033[K\n");
-                }
-                len += sprintf(buf+len, " +-----+-----+-----+-----+  << \xe5\x88\xa4\xe5\xae\x9a\xe7\xba\xbf\033[K\n");
-                len += sprintf(buf+len, "    F     G     H     J\033[K\n");
-                len += sprintf(buf+len, "\033[K\n");
-                len += sprintf(buf+len, " [Q] \xe9\x80\x80\xe5\x87\xba\033[K\n");
-                len += sprintf(buf+len, "\033[J");
+                // 游戏区域（使用 get_frame_str 渲染）
+                len += snprintf(buf.data() + len, buf_size - len, "%s", frame_str.c_str());
+
+                // 收尾清屏
+                len += snprintf(buf.data() + len, buf_size - len, "\033[J");
 
                 #ifdef _WIN32
-                WriteConsoleA(hOut, buf, (DWORD)len, &written, NULL);
+                WriteConsoleA(hOut, buf.data(), (DWORD)len, &written, NULL);
                 #else
-                ::write(STDOUT_FILENO, buf, len);
+                ::write(STDOUT_FILENO, buf.data(), len);
                 #endif
 
                 next_frame += std::chrono::milliseconds(8);
@@ -485,6 +488,7 @@ class Game
             printf("\033[?1049l");
             show_cursor();
             fflush(stdout);
+            clear;
             cout<<endl;
             cout<<"========== 游玩结束 =========="<<endl;
             cout<<" 谱面：  "<<staff[staff_num].name<<endl;
