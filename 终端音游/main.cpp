@@ -189,9 +189,15 @@ class Game
             if(a=='1')
             {
                 clear;
-                cout<<"输入谱面文件名"<<endl;
+                cout<<"输入谱面文件名（不含.txt）"<<endl;
                 string file_name;
-                cin>>file_name;
+                cin.ignore(10000, '\n');
+                getline(cin, file_name);
+                if(file_name.empty())
+                {
+                    clear;
+                    return;
+                }
                 string file_path="staff/"+file_name+".txt";
                 upload_staff(file_path);
                 clear;
@@ -338,8 +344,8 @@ class Game
         void start_play(int staff_num)
         {
             memset(display.frame,0,sizeof(display.frame));
-            const char* zhuangtai[4]={" good"," miss"," bad ","     "};
-            const char* px_cstr[2]={"     ","-----"};
+            const char* zhuangtai[4]={"GOOD ","MISS ","BAD  ","     "};
+            const char* px_cstr[2]={"     ","#####"};
             int good=0,miss=0,bad=0;
             Staff staff_copy=staff[staff_num];
             sort(staff_copy.notes.begin(),staff_copy.notes.end(),[](Note a,Note b){return a.etime<b.etime;});
@@ -350,7 +356,8 @@ class Game
 
             enable_vt100();
             hide_cursor();
-            printf("\033[2J\033[H");
+            // 切换到备用屏幕缓冲区，避免污染主屏幕和滚动历史
+            printf("\033[?1049h\033[2J\033[H");
             fflush(stdout);
 
             #ifdef _WIN32
@@ -359,6 +366,7 @@ class Game
             #endif
 
             auto next_frame = std::chrono::steady_clock::now();
+            int total_notes = staff_copy.notes.size();
 
             for(int i=0;i<staff_copy.time;i++)
             {
@@ -373,10 +381,11 @@ class Game
                 int note_idx[4]={-1,-1,-1,-1};
                 int zt[4]={3,3,3,3};
 
-                int scan_cnt=min(4,(int)staff_copy.notes.size());
-                for(int j=0;j<scan_cnt;j++)
+                // 找每个轨道最近的音符
+                for(int j=0;j<(int)staff_copy.notes.size();j++)
                 {
                     int tr=staff_copy.notes[j].track-1;
+                    if(tr<0||tr>3) continue;
                     if(note_idx[tr] < 0)
                     {
                         need_tap[tr]=staff_copy.notes[j].etime-i;
@@ -386,19 +395,15 @@ class Game
 
                 vector<int> to_erase;
 
+                const int GOOD_WINDOW = 10;
+                const int BAD_WINDOW = 22;
+                const int MISS_WINDOW = 30;
+
                 for(int j=0;j<4;j++)
                 {
                     if(note_idx[j]<0) continue;
 
                     int dt=need_tap[j];
-
-                    if(dt<-2*2)
-                    {
-                        zt[j]=1;
-                        miss++;
-                        to_erase.push_back(note_idx[j]);
-                        continue;
-                    }
 
                     bool key_pressed=false;
                     for(int k=0;k<4;k++)
@@ -406,24 +411,26 @@ class Game
                         if(anjian[k]==push[j]) { key_pressed=true; break; }
                     }
 
-                    if(!key_pressed) continue;
-
-                    if(dt>=-2*2 && dt<=2*2)
+                    if(key_pressed)
                     {
-                        zt[j]=0;
-                        good++;
-                        to_erase.push_back(note_idx[j]);
-                    }
-                    else if(dt>2*2 && dt<=6*2)
-                    {
-                        zt[j]=2;
-                        bad++;
-                        for(int k=i;k<staff_copy.notes[j].etime;k++)
+                        int abs_dt = dt < 0 ? -dt : dt;
+                        if(abs_dt <= GOOD_WINDOW)
                         {
-                            int time = i-staff_copy.notes[j].stime;
-                            int s=staff_copy.notes[j].get_speed()*time;
-                            display.frame[i][s][staff_copy.notes[j].track]=1;
+                            zt[j]=0;
+                            good++;
+                            to_erase.push_back(note_idx[j]);
                         }
+                        else if(abs_dt <= BAD_WINDOW)
+                        {
+                            zt[j]=2;
+                            bad++;
+                            to_erase.push_back(note_idx[j]);
+                        }
+                    }
+                    else if(dt < -MISS_WINDOW)
+                    {
+                        zt[j]=1;
+                        miss++;
                         to_erase.push_back(note_idx[j]);
                     }
                 }
@@ -438,26 +445,31 @@ class Game
                 int len = 0;
 
                 len += sprintf(buf+len, "\033[H");
-                len += sprintf(buf+len, "%d %d %d %d\033[K\n",
-                    need_tap[0], need_tap[1], need_tap[2], need_tap[3]);
-                len += sprintf(buf+len, "%d %d %d %d\033[K\n",
-                    note_idx[0], note_idx[1], note_idx[2], note_idx[3]);
-                len += sprintf(buf+len, "good:%d miss:%d bad:%d\033[K\n", good, miss, bad);
+                // 谱面信息栏
+                len += sprintf(buf+len, " %-20s  %d/%d frames\033[K\n",
+                    staff[staff_num].name.c_str(), i, staff_copy.time);
+                len += sprintf(buf+len, " GOOD:%-4d  BAD:%-4d  MISS:%-4d\033[K\n", good, bad, miss);
+                len += sprintf(buf+len, "\033[K\n");
 
+                // 状态判定显示
+                len += sprintf(buf+len, " ");
                 for(int j=0;j<4;j++)
-                    len += sprintf(buf+len, "|%s", zhuangtai[zt[j]]);
-                len += sprintf(buf+len, "|         \xe7\x8a\xb6\xe6\x80\x81\xe6\xa0\x8f\033[K\n");
+                    len += sprintf(buf+len, " %s ", zhuangtai[zt[j]]);
+                len += sprintf(buf+len, "\033[K\n");
 
-                len += sprintf(buf+len, "-------------------------\033[K\n");
+                // 游戏区域
+                len += sprintf(buf+len, " +-----+-----+-----+-----+\033[K\n");
                 for(int row=0;row<10;row++)
                 {
+                    len += sprintf(buf+len, " |");
                     for(int col=1;col<=4;col++)
-                        len += sprintf(buf+len, "|%s", px_cstr[display.frame[i][row][col]]);
-                    len += sprintf(buf+len, "|\033[K\n");
+                        len += sprintf(buf+len, "%s|", px_cstr[display.frame[i][row][col]]);
+                    len += sprintf(buf+len, "\033[K\n");
                 }
-                len += sprintf(buf+len, "-------------------------         \xe5\x88\xa4\xe5\xae\x9a\xe7\xba\xbf\033[K\n");
-                len += sprintf(buf+len, "   F     G     H     J   \033[K\n");
-                len += sprintf(buf+len, "\xe6\x8c\x89q\xe9\x80\x80\xe5\x87\xba\033[K\n");
+                len += sprintf(buf+len, " +-----+-----+-----+-----+  << \xe5\x88\xa4\xe5\xae\x9a\xe7\xba\xbf\033[K\n");
+                len += sprintf(buf+len, "    F     G     H     J\033[K\n");
+                len += sprintf(buf+len, "\033[K\n");
+                len += sprintf(buf+len, " [Q] \xe9\x80\x80\xe5\x87\xba\033[K\n");
                 len += sprintf(buf+len, "\033[J");
 
                 #ifdef _WIN32
@@ -470,15 +482,24 @@ class Game
                 std::this_thread::sleep_until(next_frame);
             }
 
+            // 切回主屏幕缓冲区
+            printf("\033[?1049l");
             show_cursor();
-            printf("\033[2J\033[H");
             fflush(stdout);
-            cout<<"游玩结束"<<endl;
-            cout<<"谱面："<<staff[staff_num].name<<endl;
-            cout<<"谱面长度："<<staff[staff_num].time<<"Z"<<endl;
-            cout<<"谱面物量"<<staff[staff_num].notes.size()<<endl;
-            cout<<"成绩"<<endl<<"good:"<<good<<" miss:"<<miss<<" bad:"<<bad<<endl;
-            cout<<"按下任意键继续"<<endl;
+            cout<<endl;
+            cout<<"========== 游玩结束 =========="<<endl;
+            cout<<" 谱面：  "<<staff[staff_num].name<<endl;
+            cout<<" 长度：  "<<staff[staff_num].time<<" 帧 ("
+                <<staff[staff_num].time*8<<"ms)"<<endl;
+            cout<<" 物量：  "<<total_notes<<endl;
+            cout<<" 成绩：  GOOD:"<<good<<"  BAD:"<<bad<<"  MISS:"<<miss<<endl;
+            if(total_notes>0)
+            {
+                int score = good*100/(total_notes);
+                cout<<" 得分：  "<<score<<"/100"<<endl;
+            }
+            cout<<"=============================="<<endl;
+            cout<<endl<<"按任意键继续..."<<endl;
             GETCH;
         }
         
@@ -497,13 +518,6 @@ int main()
     #else
         setlocale(LC_ALL, "");    // Linux/Mac UTF-8
     #endif
-
-    Staff test;
-    test.name="test";
-    test.time=240;
-    test.notes={{0,20,1},{20,40,2},{40,60,3},{60,80,4},
-                {100,140,1},{120,140,2},{140,180,3},{180,200,4}};
-    game.staff.push_back(test);   // 用 push_back，不要 staff[0]
 
     while(true)
     {
