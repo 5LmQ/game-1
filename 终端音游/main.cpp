@@ -175,7 +175,6 @@ class Game
             cout<<"谱面名称："<<staff_tmp.name<<endl;
             cout<<"谱面时间："<<staff_tmp.time<<endl;
             cout<<"谱面音符数量："<<staff_tmp.notes.size()<<endl;
-            char a=GETCH;
             cout<<"按任意键继续"<<endl;
             GETCH;
             clear;
