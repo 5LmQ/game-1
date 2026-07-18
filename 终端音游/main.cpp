@@ -191,7 +191,6 @@ class Game
                 clear;
                 cout<<"输入谱面文件名（不含.txt）"<<endl;
                 string file_name;
-                cin.ignore(10000, '\n');
                 getline(cin, file_name);
                 if(file_name.empty())
                 {
