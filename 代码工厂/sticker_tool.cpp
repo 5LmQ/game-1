@@ -1,55 +1,74 @@
 #include "bits.h"
 using namespace std;
 
-namespace display{
+namespace sticker_tool{
 
     string read_path="sticker.txt";
     string terminator="end";
-
+    string name_terminator="name:";
+    string stick_terminator="stick:";
+    string width_terminator="width:";
+    string height_terminator="height:";
 
     struct Sticker
     {
         int height;
         int width;
         vector<string> stick;
+    };
 
-        map<string, Sticker> sticker_map;
-        void init_sticker() 
+    map<string, Sticker> sticker_map;
+    void init_sticker() 
+    {
+        std::ifstream fin(read_path);
+        string s;
+        string name;
+        Sticker sticker_tmp;
+        while(getline(fin,s))
         {
-            std::ifstream fin(read_path);
-            Sticker sticker_tmp;
-            string name;
-            getline(fin,name);
-            string s;
-            while(getline(fin,s))
+            if(s==name_terminator)
             {
-
-                if(s=="end")
+                getline(fin,name);
+            }
+            else if(s==width_terminator)
+            {
+                getline(fin,s);
+                sticker_tmp.width=stoi(s);
+            }
+            else if(s==height_terminator)
+            {
+                getline(fin,s);
+                sticker_tmp.height=stoi(s);
+            }
+            else if(s==stick_terminator)
+            {
+                while(getline(fin,s))
                 {
-                    sticker_map[name]=sticker_tmp;
-                    sticker_tmp.height=0;
-                    sticker_tmp.width=0;
-                    sticker_tmp.stick.clear();
-                    getline(fin,name);
+                    if(s==terminator)
+                    {
+                        sticker_map[name]=sticker_tmp;
+                        sticker_tmp.height=0;
+                        sticker_tmp.width=0;
+                        sticker_tmp.stick.clear();
+                        break;
+                    }        
+                    sticker_tmp.stick.push_back(s);
                 }
-                sticker_tmp.stick.push_back(s);
-                sticker_tmp.height++;
-                sticker_tmp.width=max(sticker_tmp.width,int(s.length()/2));
             }
         }
-    };
+    }
 }
-
 
 int main()
 {
-    display::Sticker sticker;
-    sticker.init_sticker();
-    cout<<sticker.sticker_map["1"].height<<endl;
-    cout<<sticker.sticker_map["1"].width<<endl;
-    for(auto s:sticker.sticker_map["1"].stick)
+    sticker_tool::init_sticker();
+    cout<<sticker_tool::sticker_map["Empty_square"].height<<endl;
+    cout<<sticker_tool::sticker_map["Empty_square"].width<<endl;
+    for(auto s:sticker_tool::sticker_map["Empty_square"].stick)
     {
         cout<<s<<endl;
     }
+
+
     return 0;
 }
