@@ -1,9 +1,25 @@
 #include "bits.h"
+#include <csignal>
 
 using namespace std;
+
+void signal_handler(int sig) {
+    printf("\033[?25h");
+    fflush(stdout);
+    exit(0);
+}
+
 #ifdef _WIN32
     #include <conio.h>
     #include <windows.h>
+    BOOL WINAPI ctrl_handler(DWORD dwCtrlType) {
+        if (dwCtrlType == CTRL_C_EVENT || dwCtrlType == CTRL_BREAK_EVENT) {
+            printf("\033[?25h");
+            fflush(stdout);
+            exit(0);
+        }
+        return FALSE;
+    }
     #define GETCH _getch()
     int get_key_nb() {
         if (_kbhit()) return _getch();
@@ -163,7 +179,13 @@ class Game
             cout<<"1.存入谱面"<<endl;
             cout<<"2.删除谱面"<<endl;
             cout<<"3.游玩谱面"<<endl;
+            cout<<"4.退出游戏"<<endl;
             char a=GETCH;
+            if(a=='4' || a==3)
+            {
+                show_cursor();
+                exit(0);
+            }
             if(a=='1')
             {
                 clear;
@@ -467,10 +489,11 @@ int main()
     ios::sync_with_stdio(false);
     cin.tie(0);
     cout.tie(0);
+    signal(SIGINT, signal_handler);
     #ifdef _WIN32
         SetConsoleOutputCP(65001);  // Windows GBK
         SetConsoleCP(65001);
-        //system("chcp 65001");
+        SetConsoleCtrlHandler(ctrl_handler, TRUE);
     #else
         setlocale(LC_ALL, "");    // Linux/Mac UTF-8
     #endif
