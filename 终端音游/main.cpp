@@ -350,9 +350,8 @@ class Game
         {
             clear;
             memset(display.frame,0,sizeof(display.frame));
-            const char* zhuangtai[4]={"GOOD ","MISS ","BAD  ","     "};
-            const char* px_cstr[2]={"     ","-----"};
-            int good=0,miss=0,bad=0;
+            const char* zhuangtai[5]={"PERFECT","MISS ","BAD  ","GOOD ","     "};
+            int perfcet=0,good=0,bad=0,miss=0;
             Staff staff_copy=staff[staff_num];
             sort(staff_copy.notes.begin(),staff_copy.notes.end(),[](Note a,Note b){return a.etime<b.etime;});
             for(auto n:staff_copy.notes)
@@ -385,7 +384,7 @@ class Game
 
                 int need_tap[4]={0,0,0,0};
                 int note_idx[4]={-1,-1,-1,-1};
-                int zt[4]={3,3,3,3};
+                int zt[4]={4,4,4,4};
 
                 // 找每个轨道最近的音符
                 for(int j=0;j<(int)staff_copy.notes.size();j++)
@@ -401,9 +400,10 @@ class Game
 
                 vector<int> to_erase;
 
-                const int GOOD_WINDOW = 10;
+                const int PERFECT_WINDOW = 5;
+                const int GOOD_WINDOW = 14;
                 const int BAD_WINDOW = 22;
-                const int MISS_WINDOW = 30;
+                const int MISS_WINDOW = 10;
 
                 for(int j=0;j<4;j++)
                 {
@@ -420,13 +420,19 @@ class Game
                     if(key_pressed)
                     {
                         int abs_dt = dt < 0 ? -dt : dt;
-                        if(abs_dt <= GOOD_WINDOW)
+                        if(abs_dt <= PERFECT_WINDOW)
                         {
                             zt[j]=0;
+                            perfcet++;
+                            to_erase.push_back(note_idx[j]);
+                        }
+                        else if(dt <= GOOD_WINDOW)
+                        {
+                            zt[j]=3;
                             good++;
                             to_erase.push_back(note_idx[j]);
                         }
-                        else if(abs_dt <= BAD_WINDOW)
+                        else if(dt <= BAD_WINDOW)
                         {
                             zt[j]=2;
                             bad++;
@@ -458,8 +464,10 @@ class Game
                 // 谱面信息栏
                 len += snprintf(buf.data() + len, buf_size - len, " %-20s  %d/%d frames\033[K\n",
                     staff[staff_num].name.c_str(), i, staff_copy.time);
-                len += snprintf(buf.data() + len, buf_size - len, " GOOD:%-4d  BAD:%-4d  MISS:%-4d\033[K\n", good, bad, miss);
+                len += snprintf(buf.data() + len, buf_size - len, " PERFECT:%-4d GOOD:%-4d BAD:%-4d MISS:%-4d\033[K\n", perfcet, good, bad, miss);
                 len += snprintf(buf.data() + len, buf_size - len, "\033[K\n");
+                //分数
+                len += snprintf(buf.data() + len, buf_size - len, " 分数:%-4d\033[K\n", (perfcet*3+good*1)*100/(total_notes*3));
 
                 // 状态判定显示
                 len += snprintf(buf.data() + len, buf_size - len, " ");
@@ -494,10 +502,10 @@ class Game
             cout<<" 长度：  "<<staff[staff_num].time<<" 帧 ("
                 <<staff[staff_num].time*8<<"ms)"<<endl;
             cout<<" 物量：  "<<total_notes<<endl;
-            cout<<" 成绩：  GOOD:"<<good<<"  BAD:"<<bad<<"  MISS:"<<miss<<endl;
+            cout<<" 成绩：  PERFECT:"<<perfcet<<" GOOD:"<<good<<" BAD:"<<bad<<" MISS:"<<miss<<endl;
             if(total_notes>0)
             {
-                int score = good*100/(total_notes);
+                int score = (perfcet*3+good*1)*100/(total_notes*3);
                 cout<<" 得分：  "<<score<<"/100"<<endl;
             }
             cout<<"=============================="<<endl;
