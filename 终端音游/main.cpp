@@ -1,4 +1,5 @@
 #include "bits.h"
+#include "get_staff.cpp"
 #include <csignal>
 
 using namespace std;
@@ -85,25 +86,6 @@ char push[5]={'f','g','h','j'};
 
 //通常来说单位速度为一tick下降一格
 
-struct Note
-{
-    int stime;//开始时间
-    int etime;//结束时间
-    int track;//轨道
-    double get_speed()
-    {
-        int dt=etime-stime;
-        double ds=10.0;
-        return ds/dt;
-    }
-};
-
-struct Staff
-{
-    string name;
-    int time;
-    vector<Note> notes;
-};
 class Dispaly
 {
     public:
