@@ -1,4 +1,5 @@
 #include "bits.h"
+#include "get_staff.cpp"
 #include <csignal>
 
 using namespace std;
@@ -85,29 +86,10 @@ char push[5]={'f','g','h','j'};
 
 //通常来说单位速度为一tick下降一格
 
-struct Note
-{
-    int stime;//开始时间
-    int etime;//结束时间
-    int track;//轨道
-    double get_speed()
-    {
-        int dt=etime-stime;
-        double ds=10.0;
-        return ds/dt;
-    }
-};
-
-struct Staff
-{
-    string name;
-    int time;
-    vector<Note> notes;
-};
 class Dispaly
 {
     public:
-        bool frame[1000000][10][5];  // track 1-4, index 0 unused
+        bool frame[1000000][10][5];  // track 1-4, index 0 unused.  1000000*8ms=8000s
         string px[2]={"     ","-----"};
         
         void add_note_to_frame(Note n)
@@ -190,6 +172,7 @@ class Game
             if(a=='4' || a==3)
             {
                 show_cursor();
+                clear;
                 exit(0);
             }
             if(a=='1')
@@ -350,9 +333,8 @@ class Game
         {
             clear;
             memset(display.frame,0,sizeof(display.frame));
-            const char* zhuangtai[4]={"GOOD ","MISS ","BAD  ","     "};
-            const char* px_cstr[2]={"     ","-----"};
-            int good=0,miss=0,bad=0;
+            const char* zhuangtai[5]={"PERFECT","MISS ","BAD  ","GOOD ","     "};
+            int perfcet=0,good=0,bad=0,miss=0;
             Staff staff_copy=staff[staff_num];
             sort(staff_copy.notes.begin(),staff_copy.notes.end(),[](Note a,Note b){return a.etime<b.etime;});
             for(auto n:staff_copy.notes)
@@ -373,6 +355,8 @@ class Game
 
             auto next_frame = std::chrono::steady_clock::now();
             int total_notes = staff_copy.notes.size();
+            const double perfcet_note_score=1000000.0/total_notes;
+            double score=0;
 
             for(int i=0;i<staff_copy.time;i++)
             {
@@ -385,7 +369,7 @@ class Game
 
                 int need_tap[4]={0,0,0,0};
                 int note_idx[4]={-1,-1,-1,-1};
-                int zt[4]={3,3,3,3};
+                int zt[4]={4,4,4,4};
 
                 // 找每个轨道最近的音符
                 for(int j=0;j<(int)staff_copy.notes.size();j++)
@@ -401,9 +385,11 @@ class Game
 
                 vector<int> to_erase;
 
-                const int GOOD_WINDOW = 10;
+                const int PERFECT_WINDOW_up = 7;
+                const int PERFECT_WINDOW_down = -7;
+                const int GOOD_WINDOW = 14;
                 const int BAD_WINDOW = 22;
-                const int MISS_WINDOW = 30;
+                const int MISS_WINDOW = 7;
 
                 for(int j=0;j<4;j++)
                 {
@@ -419,18 +405,26 @@ class Game
 
                     if(key_pressed)
                     {
-                        int abs_dt = dt < 0 ? -dt : dt;
-                        if(abs_dt <= GOOD_WINDOW)
+                        if(dt <= PERFECT_WINDOW_up&&dt>=PERFECT_WINDOW_down)
                         {
                             zt[j]=0;
+                            perfcet++;
+                            to_erase.push_back(note_idx[j]);
+                            score+=perfcet_note_score;
+                        }
+                        else if(dt <= GOOD_WINDOW)
+                        {
+                            zt[j]=3;
                             good++;
                             to_erase.push_back(note_idx[j]);
+                            score+=perfcet_note_score*0.7;
                         }
-                        else if(abs_dt <= BAD_WINDOW)
+                        else if(dt <= BAD_WINDOW)
                         {
                             zt[j]=2;
                             bad++;
                             to_erase.push_back(note_idx[j]);
+                            score+=perfcet_note_score*0.2;
                         }
                     }
                     else if(dt < -MISS_WINDOW)
@@ -458,8 +452,10 @@ class Game
                 // 谱面信息栏
                 len += snprintf(buf.data() + len, buf_size - len, " %-20s  %d/%d frames\033[K\n",
                     staff[staff_num].name.c_str(), i, staff_copy.time);
-                len += snprintf(buf.data() + len, buf_size - len, " GOOD:%-4d  BAD:%-4d  MISS:%-4d\033[K\n", good, bad, miss);
+                len += snprintf(buf.data() + len, buf_size - len, " PERFECT:%-4d GOOD:%-4d BAD:%-4d MISS:%-4d\033[K\n", perfcet, good, bad, miss);
                 len += snprintf(buf.data() + len, buf_size - len, "\033[K\n");
+                //分数
+                len += snprintf(buf.data() + len, buf_size - len, " 分数:%-4d\033[K\n", (int)score);
 
                 // 状态判定显示
                 len += snprintf(buf.data() + len, buf_size - len, " ");
@@ -489,18 +485,13 @@ class Game
             fflush(stdout);
             clear;
             cout<<endl;
-            cout<<"========== 游玩结束 =========="<<endl;
-            cout<<" 谱面：  "<<staff[staff_num].name<<endl;
-            cout<<" 长度：  "<<staff[staff_num].time<<" 帧 ("
-                <<staff[staff_num].time*8<<"ms)"<<endl;
-            cout<<" 物量：  "<<total_notes<<endl;
-            cout<<" 成绩：  GOOD:"<<good<<"  BAD:"<<bad<<"  MISS:"<<miss<<endl;
-            if(total_notes>0)
-            {
-                int score = good*100/(total_notes);
-                cout<<" 得分：  "<<score<<"/100"<<endl;
-            }
-            cout<<"=============================="<<endl;
+            cout<<"============ 游玩结束 ============"<<endl;
+            cout<<" 谱面：   "<<staff[staff_num].name<<endl;
+            cout<<" 长度：   "<<staff[staff_num].time<<" 帧 ("<<staff[staff_num].time*8<<"ms)"<<endl;
+            cout<<" 物量：   "<<total_notes<<endl;
+            cout<<" 成绩：   "<<perfcet<<"/"<<good<<"/"<<bad<<"/"<<miss<<endl;
+            cout<<" 得分：   "<<(int)score<<"/1000000"<<endl;
+            cout<<"=================================="<<endl;
             cout<<endl<<"按任意键继续..."<<endl;
             GETCH;
         }
@@ -520,7 +511,7 @@ int main()
     #else
         setlocale(LC_ALL, "");    // Linux/Mac UTF-8
     #endif
-
+    clear;
     while(true)
     {
         game.start();

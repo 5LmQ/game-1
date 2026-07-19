@@ -1,13 +1,13 @@
 .DS_Store
-main
-game
-main.exe
-game.exe
 *.dSYM
 终端音游/staff
 .vscode/launch.json
 .vscode/tasks.json
+<<<<<<< HEAD
 终端音游/vc140.pdb
 终端音游/main.exe
 终端音游/main
 终端音游/CLAUDE.md
+=======
+终端音游/vc140.pdb
+>>>>>>> 85171067b3f58935c5d3044d72490aaaa3b4fc29
