@@ -107,7 +107,7 @@ struct Staff
 class Dispaly
 {
     public:
-        bool frame[1000000][10][5];  // track 1-4, index 0 unused
+        bool frame[1000000][10][5];  // track 1-4, index 0 unused.  1000000*8ms=8000s
         string px[2]={"     ","-----"};
         
         void add_note_to_frame(Note n)
@@ -503,17 +503,13 @@ class Game
             fflush(stdout);
             clear;
             cout<<endl;
-            cout<<"========== 游玩结束 =========="<<endl;
-            cout<<" 谱面：  "<<staff[staff_num].name<<endl;
-            cout<<" 长度：  "<<staff[staff_num].time<<" 帧 ("
-                <<staff[staff_num].time*8<<"ms)"<<endl;
-            cout<<" 物量：  "<<total_notes<<endl;
-            cout<<" 成绩：  PERFECT:"<<perfcet<<" GOOD:"<<good<<" BAD:"<<bad<<" MISS:"<<miss<<endl;
-            if(total_notes>0)
-            {
-                cout<<" 得分：  "<<(int)score<<"/1000000"<<endl;
-            }
-            cout<<"=============================="<<endl;
+            cout<<"============ 游玩结束 ============"<<endl;
+            cout<<" 谱面：   "<<staff[staff_num].name<<endl;
+            cout<<" 长度：   "<<staff[staff_num].time<<" 帧 ("<<staff[staff_num].time*8<<"ms)"<<endl;
+            cout<<" 物量：   "<<total_notes<<endl;
+            cout<<" 成绩：   "<<perfcet<<"/"<<good<<"/"<<bad<<"/"<<miss<<endl;
+            cout<<" 得分：   "<<(int)score<<"/1000000"<<endl;
+            cout<<"=================================="<<endl;
             cout<<endl<<"按任意键继续..."<<endl;
             GETCH;
         }

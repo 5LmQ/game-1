@@ -1,12 +1,6 @@
 .DS_Store
-main
-game
-main.exe
-game.exe
 *.dSYM
 终端音游/staff
 .vscode/launch.json
 .vscode/tasks.json
 终端音游/vc140.pdb
-终端音游/main.exe
-终端音游/main
