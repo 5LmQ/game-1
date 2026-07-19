@@ -206,6 +206,12 @@ void start_ide()
                 while(1)
                 {
                     clear;
+                            memset(time_excel,0,sizeof(time_excel));
+                            for (auto& kv : notes_map) {
+                                auto key  = kv.first;    // 即 pair<etime, track>
+                                Note& note = kv.second;  // 即 Note 对象
+                                add_note_to_time_excel(note);
+                            }
                     preview_staff(time_window_s,time_window_e);
                     cout<<"按s编辑起始时间  按e编辑结束时间  按a向左移动轨道  按d向右移动轨道"<<endl<<"按q退出"<<endl;
                     int ch=GETCH;
@@ -267,16 +273,24 @@ void start_ide()
                             int ch=GETCH;
                             if(ch=='w')
                             {
-                                if(notes_map[{etime,track}].etime>notes_map[{etime,track}].stime+1)
+                                Note n = notes_map[{etime,track}];
+                                if(n.etime>n.stime+1)
                                 {
-                                    notes_map[{etime,track}].stime--;
+                                    n.etime--;
+                                    notes_map.erase({etime,track});
+                                    notes_map[{n.etime,n.track}] = n;
+                                    etime = n.etime;
                                 }
                             }
                             if(ch=='s')
                             {
-                                if(notes_map[{etime,track}].etime<notes_map[{etime,track}].etime-1)
+                                Note n = notes_map[{etime,track}];
+                                if(n.etime<1000000)
                                 {
-                                    notes_map[{etime,track}].stime++;
+                                    n.etime++;
+                                    notes_map.erase({etime,track});
+                                    notes_map[{n.etime,n.track}] = n;
+                                    etime = n.etime;
                                 }
                             }
                             if(ch=='q')
@@ -287,33 +301,24 @@ void start_ide()
                     }
                     if(ch=='a')
                     {
-                        clear;
-                        memset(time_excel,0,sizeof(time_excel));
-                        for (auto& kv : notes_map) {
-                            auto key  = kv.first;    // 即 pair<etime, track>
-                            Note& note = kv.second;  // 即 Note 对象
-                            add_note_to_time_excel(note);
-                        }
-                        preview_staff(time_window_s,time_window_e);
-                        if(notes_map[{etime,track}].track>1)
+                        Note n = notes_map[{etime,track}];
+                        if(n.track > 1)
                         {
-                            notes_map[{etime,track}].track--;
+                            n.track--;
+                            notes_map.erase({etime,track});
+                            notes_map[{n.etime, n.track}] = n;
+                            track = n.track;
                         }
-
                     }
                     if(ch=='d')
                     {
-                        clear;
-                        memset(time_excel,0,sizeof(time_excel));
-                        for (auto& kv : notes_map) {
-                            auto key  = kv.first;    // 即 pair<etime, track>
-                            Note& note = kv.second;  // 即 Note 对象
-                            add_note_to_time_excel(note);
-                        }
-                        preview_staff(time_window_s,time_window_e);
-                        if(notes_map[{etime,track}].track<4)
+                        Note n = notes_map[{etime,track}];
+                        if(n.track < 4)
                         {
-                            notes_map[{etime,track}].track++;
+                            n.track++;
+                            notes_map.erase({etime,track});
+                            notes_map[{n.etime, n.track}] = n;
+                            track = n.track;
                         }
                     }
                 }
@@ -322,13 +327,30 @@ void start_ide()
                     break;
                 }
         }
+        if(ch=='q')
+        {
+            clear;
+            cout<<"正在导出谱面"<<endl;
+            cout<<"导出成功，请输入谱面名称"<<endl;
+            string name;
+            getline(cin,name);
+            ofstream fout("staff/"+name+".txt");
+            fout<<name<<endl;
+            cout<<"请输入谱面时长（单位：帧）"<<endl;
+            int time_length;
+            cin>>time_length;
+            fout<<time_length<<endl;
+            for (auto& kv : notes_map) 
+            {
+                auto key  = kv.first;    
+                Note& note = kv.second;  
+                fout<<note.stime<<" "<<note.etime<<" "<<note.track<<endl;
+            }
+            cout<<"导出成功"<<endl;
+            cout<<"按任意键继续"<<endl;
+            GETCH;
+            break;
+        }
     
     }
-}
-
-int main()
-{
-    clear;
-    start_ide();
-    return 0;
 }

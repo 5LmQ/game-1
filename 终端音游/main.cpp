@@ -1,5 +1,5 @@
 #include "bits.h"
-#include "get_staff.cpp"
+#include "get_staff.h"
 #include <csignal>
 
 using namespace std;
@@ -98,9 +98,10 @@ class Game
             cout<<"1.存入谱面"<<endl;
             cout<<"2.删除谱面"<<endl;
             cout<<"3.游玩谱面"<<endl;
-            cout<<"4.退出游戏"<<endl;
+            cout<<"4.制作谱面"<<endl;
+            cout<<"5.退出游戏"<<endl;
             char a=GETCH;
-            if(a=='4' || a==3)
+            if(a=='5' || a==3)
             {
                 show_cursor();
                 clear;
@@ -253,6 +254,11 @@ class Game
                     }
                     clear;
                 }
+            }
+            if(a=='4')
+            {
+                start_ide();
+                clear;
             }
             else
             {
