@@ -125,15 +125,15 @@ void start_ide()
 {
     map<pair<int,int>,Note> notes_map;
     signal(SIGWINCH, handle_winch);
-    Staff staff;
     int time_window_s=0;
     int time_window_e=30;
     while (1)
     {
         memset(time_excel,0,sizeof(time_excel));
-        for(auto n:staff.notes)
-        {
-            add_note_to_time_excel(n);
+        for (auto& kv : notes_map) {
+            auto key  = kv.first;    // 即 pair<etime, track>
+            Note& note = kv.second;  // 即 Note 对象
+            add_note_to_time_excel(note);
         }
         clear;
         preview_staff(time_window_s,time_window_e);
@@ -174,7 +174,6 @@ void start_ide()
             preview_staff(time_window_s,time_window_e);
             cout<<"输入note开始时间与结束时间"<<endl;
             cin>>n.stime>>n.etime;
-            staff.notes.push_back(n);
             notes_map[{n.etime,n.track}]=n;
 
         }
@@ -190,10 +189,6 @@ void start_ide()
             preview_staff(time_window_s,time_window_e);
             cout<<"输入note结束时间"<<endl;
             cin>>etime;
-            auto it = std::find_if(staff.notes.begin(), staff.notes.end(), [&](const Note &x){
-                return x.etime==etime && x.track==track;
-            });
-            if(it!=staff.notes.end()) staff.notes.erase(it);
             notes_map.erase({etime,track});
         }
         if(ch=='e')
@@ -221,10 +216,15 @@ void start_ide()
                     if(ch=='s')
                     {
                         clear;
-                        preview_staff(time_window_s,time_window_e);
                         while(1)
                         {
                             clear;
+                            memset(time_excel,0,sizeof(time_excel));
+                            for (auto& kv : notes_map) {
+                                auto key  = kv.first;    // 即 pair<etime, track>
+                                Note& note = kv.second;  // 即 Note 对象
+                                add_note_to_time_excel(note);
+                            }
                             preview_staff(time_window_s,time_window_e);
                             cout<<"按w向前移动开始时间  按s向后移动开始时间"<<endl;
                             cout<<"按q退出"<<endl;
@@ -252,10 +252,15 @@ void start_ide()
                     if(ch=='e')
                     {
                         clear;
-                        preview_staff(time_window_s,time_window_e);
                         while(1)
                         {
                             clear;
+                            memset(time_excel,0,sizeof(time_excel));
+                            for (auto& kv : notes_map) {
+                                auto key  = kv.first;    // 即 pair<etime, track>
+                                Note& note = kv.second;  // 即 Note 对象
+                                add_note_to_time_excel(note);
+                            }
                             preview_staff(time_window_s,time_window_e);
                             cout<<"按w向前移动结束时间  按s向后移动结束时间"<<endl;
                             cout<<"按q退出"<<endl;
@@ -282,6 +287,14 @@ void start_ide()
                     }
                     if(ch=='a')
                     {
+                        clear;
+                        memset(time_excel,0,sizeof(time_excel));
+                        for (auto& kv : notes_map) {
+                            auto key  = kv.first;    // 即 pair<etime, track>
+                            Note& note = kv.second;  // 即 Note 对象
+                            add_note_to_time_excel(note);
+                        }
+                        preview_staff(time_window_s,time_window_e);
                         if(notes_map[{etime,track}].track>1)
                         {
                             notes_map[{etime,track}].track--;
@@ -290,6 +303,14 @@ void start_ide()
                     }
                     if(ch=='d')
                     {
+                        clear;
+                        memset(time_excel,0,sizeof(time_excel));
+                        for (auto& kv : notes_map) {
+                            auto key  = kv.first;    // 即 pair<etime, track>
+                            Note& note = kv.second;  // 即 Note 对象
+                            add_note_to_time_excel(note);
+                        }
+                        preview_staff(time_window_s,time_window_e);
                         if(notes_map[{etime,track}].track<4)
                         {
                             notes_map[{etime,track}].track++;
