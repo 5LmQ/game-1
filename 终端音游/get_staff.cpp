@@ -95,7 +95,7 @@ struct Staff
 };
 
 int time_excel[1000000][4];
-string px[7]={"  |  ","  :  "," [s] "," [e] ","| : |","|[s]|","|[e]|"};
+string px[7]={"  |  ","  :  "," [s] "," [e] "};
 
 void preview_staff(int time_start,int time_end)
 {
@@ -198,109 +198,111 @@ void start_ide()
         }
         if(ch=='e')
         {
-            clear;
-            preview_staff(time_window_s,time_window_e);
-            int etime,track;
-            cout<<"键入note轨道"<<endl;
-            char a=GETCH;
-            track=a-'0';
-            clear;
-            preview_staff(time_window_s,time_window_e);
-            cout<<"输入note结束时间"<<endl;
-            cin>>etime;
-            while(1)
-            {
                 clear;
                 preview_staff(time_window_s,time_window_e);
-                cout<<"按s编辑起始时间  按e编辑结束时间  按a向左移动轨道  按d向右移动轨道"<<endl<<"按q退出"<<endl;
-                int ch=GETCH;
+                int etime,track;
+                cout<<"键入note轨道"<<endl;
+                char a=GETCH;
+                track=a-'0';
+                clear;
+                preview_staff(time_window_s,time_window_e);
+                cout<<"输入note结束时间"<<endl;
+                cin>>etime;
+                while(1)
+                {
+                    clear;
+                    preview_staff(time_window_s,time_window_e);
+                    cout<<"按s编辑起始时间  按e编辑结束时间  按a向左移动轨道  按d向右移动轨道"<<endl<<"按q退出"<<endl;
+                    int ch=GETCH;
+                    if(ch=='q')
+                    {
+                        break;
+                    }
+                    if(ch=='s')
+                    {
+                        clear;
+                        preview_staff(time_window_s,time_window_e);
+                        while(1)
+                        {
+                            clear;
+                            preview_staff(time_window_s,time_window_e);
+                            cout<<"按w向前移动开始时间  按s向后移动开始时间"<<endl;
+                            cout<<"按q退出"<<endl;
+                            int ch=GETCH;
+                            if(ch=='w')
+                            {
+                                if(notes_map[{etime,track}].stime!=0)
+                                {
+                                    notes_map[{etime,track}].stime--;
+                                }
+                            }
+                            if(ch=='s')
+                            {
+                                if(notes_map[{etime,track}].stime<notes_map[{etime,track}].etime-1)
+                                {
+                                    notes_map[{etime,track}].stime++;
+                                }
+                            }
+                            if(ch=='q')
+                            {
+                                break;
+                            }
+                        }
+                    }
+                    if(ch=='e')
+                    {
+                        clear;
+                        preview_staff(time_window_s,time_window_e);
+                        while(1)
+                        {
+                            clear;
+                            preview_staff(time_window_s,time_window_e);
+                            cout<<"按w向前移动结束时间  按s向后移动结束时间"<<endl;
+                            cout<<"按q退出"<<endl;
+                            int ch=GETCH;
+                            if(ch=='w')
+                            {
+                                if(notes_map[{etime,track}].etime>notes_map[{etime,track}].stime+1)
+                                {
+                                    notes_map[{etime,track}].stime--;
+                                }
+                            }
+                            if(ch=='s')
+                            {
+                                if(notes_map[{etime,track}].etime<notes_map[{etime,track}].etime-1)
+                                {
+                                    notes_map[{etime,track}].stime++;
+                                }
+                            }
+                            if(ch=='q')
+                            {
+                                break;
+                            }
+                        }
+                    }
+                    if(ch=='a')
+                    {
+                        if(notes_map[{etime,track}].track>1)
+                        {
+                            notes_map[{etime,track}].track--;
+                        }
+
+                    }
+                    if(ch=='d')
+                    {
+                        if(notes_map[{etime,track}].track<4)
+                        {
+                            notes_map[{etime,track}].track++;
+                        }
+                    }
+                }
                 if(ch=='q')
                 {
                     break;
                 }
-                if(ch=='s')
-                {
-                    clear;
-                    preview_staff(time_window_s,time_window_e);
-                    while(1)
-                    {
-                        clear;
-                        preview_staff(time_window_s,time_window_e);
-                        cout<<"按w向前移动开始时间  按s向后移动开始时间"<<endl;
-                        cout<<"按q退出"<<endl;
-                        int ch=GETCH;
-                        if(ch=='w')
-                        {
-                            if(notes_map[{etime,track}].stime!=0)
-                            {
-                                notes_map[{etime,track}].stime--;
-                            }
-                        }
-                        if(ch=='s')
-                        {
-                            if(notes_map[{etime,track}].stime<notes_map[{etime,track}].etime-1)
-                            {
-                                notes_map[{etime,track}].stime++;
-                            }
-                        }
-                        if(ch=='q')
-                        {
-                            break;
-                        }
-                    }
-                }
-                if(ch=='e')
-                {
-                    clear;
-                    preview_staff(time_window_s,time_window_e);
-                    while(1)
-                    {
-                        clear;
-                        preview_staff(time_window_s,time_window_e);
-                        cout<<"按w向前移动结束时间  按s向后移动结束时间"<<endl;
-                        cout<<"按q退出"<<endl;
-                        int ch=GETCH;
-                        if(ch=='w')
-                        {
-                            if(notes_map[{etime,track}].etime>notes_map[{etime,track}].stime+1)
-                            {
-                                notes_map[{etime,track}].stime--;
-                            }
-                        }
-                        if(ch=='s')
-                        {
-                            if(notes_map[{etime,track}].etime<notes_map[{etime,track}].etime-1)
-                            {
-                                notes_map[{etime,track}].stime++;
-                            }
-                        }
-                        if(ch=='q')
-                        {
-                            break;
-                        }
-                    }
-                }
-                if(ch=='a')
-                {
-                    clear;
-                    preview_staff(time_window_s,time_window_e);
-                    cout<<"输入note轨道"<<endl;
-                    cin>>track;
-                }
-                if(ch=='d')
-                {
-                    clear;
-                    preview_staff(time_window_s,time_window_e);
-                    cout<<"输入note轨道"<<endl;
-                    cin>>track;
-            }
         }
-        if(ch=='q')
-        {
-            break;
-        }
-    }
     
+    }
 }
 
 int main()
