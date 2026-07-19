@@ -167,9 +167,12 @@ void start_ide()
             Note n;
             clear;
             preview_staff(time_window_s,time_window_e);
-            cout<<"键入note轨道"<<endl;
-            char a=GETCH;
-            n.track=a-'0';
+            while(1){
+                cout<<"键入note轨道 (1-4)"<<endl;
+                char a=GETCH;
+                n.track=a-'0';
+                if(n.track>=1 && n.track<=4) break;
+            }
             clear;
             preview_staff(time_window_s,time_window_e);
             cout<<"输入note开始时间与结束时间"<<endl;
@@ -182,9 +185,12 @@ void start_ide()
             clear;
             preview_staff(time_window_s,time_window_e);
             int etime,track;
-            cout<<"键入note轨道"<<endl;
-            char a=GETCH;
-            track=a-'0';
+            while(1){
+                cout<<"键入note轨道 (1-4)"<<endl;
+                char a=GETCH;
+                track=a-'0';
+                if(track>=1 && track<=4) break;
+            }
             clear;
             preview_staff(time_window_s,time_window_e);
             cout<<"输入note结束时间"<<endl;
@@ -196,9 +202,12 @@ void start_ide()
                 clear;
                 preview_staff(time_window_s,time_window_e);
                 int etime,track;
-                cout<<"键入note轨道"<<endl;
-                char a=GETCH;
-                track=a-'0';
+                while(1){
+                    cout<<"键入note轨道 (1-4)"<<endl;
+                    char a=GETCH;
+                    track=a-'0';
+                    if(track>=1 && track<=4) break;
+                }
                 clear;
                 preview_staff(time_window_s,time_window_e);
                 cout<<"输入note结束时间"<<endl;
