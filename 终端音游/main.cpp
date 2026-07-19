@@ -190,6 +190,7 @@ class Game
             if(a=='4' || a==3)
             {
                 show_cursor();
+                clear;
                 exit(0);
             }
             if(a=='1')
@@ -403,10 +404,10 @@ class Game
                 vector<int> to_erase;
 
                 const int PERFECT_WINDOW_up = 7;
-                const int PERFECT_WINDOW_down = -5;
+                const int PERFECT_WINDOW_down = -7;
                 const int GOOD_WINDOW = 14;
                 const int BAD_WINDOW = 22;
-                const int MISS_WINDOW = 5;
+                const int MISS_WINDOW = 7;
 
                 for(int j=0;j<4;j++)
                 {
