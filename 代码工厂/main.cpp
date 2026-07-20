@@ -22,7 +22,7 @@ int main()
     screen a;
     a.resize(60,30,"  ",0);
     a.add_sticker(sticker_map["Empty_square"],0,0);
-    a.add_sticker(sticker_map["Empty_square"],4,0);
+    a.add_sticker(sticker_map["Empty_square"],4,0); 
 
     a.print_screen();
     return 0;

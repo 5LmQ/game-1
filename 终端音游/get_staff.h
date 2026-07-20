@@ -168,6 +168,8 @@ void start_ide()
             clear;
             preview_staff(time_window_s,time_window_e);
             while(1){
+                clear;
+                preview_staff(time_window_s,time_window_e);
                 cout<<"键入note轨道 (1-4)"<<endl;
                 char a=GETCH;
                 n.track=a-'0';
@@ -186,6 +188,8 @@ void start_ide()
             preview_staff(time_window_s,time_window_e);
             int etime,track;
             while(1){
+                clear;
+                preview_staff(time_window_s,time_window_e);
                 cout<<"键入note轨道 (1-4)"<<endl;
                 char a=GETCH;
                 track=a-'0';
@@ -203,6 +207,8 @@ void start_ide()
                 preview_staff(time_window_s,time_window_e);
                 int etime,track;
                 while(1){
+                    clear;
+                    preview_staff(time_window_s,time_window_e);
                     cout<<"键入note轨道 (1-4)"<<endl;
                     char a=GETCH;
                     track=a-'0';
