@@ -174,7 +174,7 @@ game-1/
 
 ## 开发人员
 
-[5LmQ](https://github.com/5LmQ)
+[5LmQ](https://github.com/5LmQ)  
 [Pub1icClass](https://github.com/Pub1icClass)
 
 ---
