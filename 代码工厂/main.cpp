@@ -2,9 +2,9 @@
 #include "display.h"
 #include "../tool/sticker_tool.h"
 #ifdef _WIN32
-#define clear system("cls")
+#define clear_screen system("cls")
 #else
-#define clear system("clear")
+#define clear_screen system("clear")
 #endif
 
 using namespace std;
@@ -13,7 +13,7 @@ using namespace sticker_tool;
 
 int main() 
 {
-    clear;
+    clear_screen;
     init_sticker();
     // cout<<sticker_map["Empty_square"].height<<endl;
     // cout<<sticker_map["Empty_square"].width<<endl;

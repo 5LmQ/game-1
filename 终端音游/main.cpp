@@ -1,7 +1,101 @@
 #include "../tool/bits.h"
-#include "get_staff.h"
+#include "../tool/sticker_tool.h"
 
+#define endl "\n"
+#ifdef _WIN32
+    #include <conio.h>
+    #include <windows.h>
+    BOOL WINAPI ctrl_handler(DWORD dwCtrlType) {
+        if (dwCtrlType == CTRL_C_EVENT || dwCtrlType == CTRL_BREAK_EVENT) {
+            printf("\033[?25h");
+            fflush(stdout);
+            exit(0);
+        }
+        return FALSE;
+    }
+    #define GETCH _getch()
+    int get_key_nb() {
+        if (_kbhit()) return _getch();
+        return -1;
+    }
+    #ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
+    #define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
+    #endif
+    void enable_vt100() {
+        HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+        DWORD mode = 0;
+        GetConsoleMode(hOut, &mode);
+        SetConsoleMode(hOut, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+    }
+    void hide_cursor() { printf("\033[?25l"); }
+    void show_cursor() { printf("\033[?25h"); }
+    #define clear_screen system("cls")
+    #define move_home() printf("\033[H")
+#else
+    #include <termios.h>
+    #include <unistd.h>
+    #include <fcntl.h>
+    #include <csignal>
+    volatile sig_atomic_t winch_flag = 0;
+    void handle_winch(int) { winch_flag = 1; }
+    int get_key_nb() {
+        struct termios oldt, newt;
+        tcgetattr(STDIN_FILENO, &oldt);
+        newt = oldt;
+        newt.c_lflag &= ~(ICANON | ECHO);
+        tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+
+        int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
+        fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
+
+        int ch = getchar();
+        if (ch == EOF) ch = -1;
+
+        fcntl(STDIN_FILENO, F_SETFL, flags);
+        tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+        return ch;
+    }
+    void enable_vt100() {}
+    void hide_cursor() { printf("\033[?25l"); }
+    void show_cursor() { printf("\033[?25h"); }
+    #define clear_screen system("clear")
+    #define move_home() printf("\033[H")
+    char getch_char() {
+        struct termios oldt, newt;
+        char ch;
+        tcgetattr(STDIN_FILENO, &oldt);
+        newt=oldt;
+        newt.c_lflag &= ~(ICANON | ECHO);
+        tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+        ch=getchar();
+        tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+        return ch;
+    }
+    #define GETCH getch_char()
+#endif
 using namespace std;
+
+struct Note
+{
+    int stime;//开始时间
+    int etime;//结束时间
+    int track;//轨道
+    double get_speed()
+    {
+        int dt=etime-stime;
+        double ds=10.0;
+        return ds/dt;
+    }
+};
+
+struct Staff
+{
+    string name;
+    int time;
+    vector<Note> notes;
+};
+
+using namespace sticker_tool;
 
 void signal_handler(int sig) {
     printf("\033[?25h");
@@ -18,9 +112,17 @@ char push[5]={'f','g','h','j'};
 
 class Dispaly
 {
+    private:
+        screen screen;
     public:
         bool frame[1000000][10][5];  // track 1-4, index 0 unused.  1000000*8ms=8000s
         string px[2]={"     ","-----"};
+
+        void init()
+        {
+            init_sticker();
+            screen.resize(60,30,"  ",0);
+        }
         
         void add_note_to_frame(Note n)
         {
@@ -52,6 +154,9 @@ class Dispaly
             s += "按q退出\n";
             return s;
         }
+
+        
+
 }display;
 
 
@@ -68,7 +173,7 @@ class Game
                 cout<<"谱面文件打开失败"<<endl;
                 cout<<"按任意键返回"<<endl;
                 GETCH;
-                clear;
+                clear_screen;
                 return;
             }
             Staff staff_tmp;
@@ -89,11 +194,12 @@ class Game
             cout<<"谱面音符数量："<<staff_tmp.notes.size()<<endl;
             cout<<"按任意键继续"<<endl;
             GETCH;
-            clear;
+            clear_screen;
         }
 
         void start()
         {
+            //理论上这里需要改成开始屏幕的显示
             cout<<"1.存入谱面"<<endl;
             cout<<"2.删除谱面"<<endl;
             cout<<"3.游玩谱面"<<endl;
@@ -103,27 +209,27 @@ class Game
             if(a=='5' || a==3)
             {
                 show_cursor();
-                clear;
+                clear_screen;
                 exit(0);
             }
             if(a=='1')
             {
-                clear;
+                clear_screen;
                 cout<<"输入谱面文件名（不含.txt）"<<endl;
                 string file_name;
                 getline(cin, file_name);
                 if(file_name.empty())
                 {
-                    clear;
+                    clear_screen;
                     return;
                 }
                 string file_path="staff/"+file_name+".txt";
                 upload_staff(file_path);
-                clear;
+                clear_screen;
             }
             else if(a=='2')
             {
-                clear;
+                clear_screen;
                 int page=0;
                 int maxpage=staff.size()/5+1;
                 while(1)
@@ -162,7 +268,7 @@ class Game
                                 cout<<"删除成功"<<endl;
                                 cout<<"按任意键继续"<<endl;
                                 GETCH;
-                                clear;
+                                clear_screen;
                             }
                         }
                     }
@@ -182,20 +288,20 @@ class Game
                     }
                     else if(a=='q')
                     {
-                        clear;
+                        clear_screen;
                         break;
                     }
                     else
                     {
-                        clear;
+                        clear_screen;
                         continue;
                     }
-                    clear;
+                    clear_screen;
                 }
             }
              else if(a=='3')
             {
-                clear;
+                clear_screen;
                 int page=0;
                 int maxpage=staff.size()/5+1;
                 while(1)
@@ -243,31 +349,26 @@ class Game
                     }
                     else if(a=='q')
                     {
-                        clear;
+                        clear_screen;
                         break;
                     }
                     else
                     {
-                        clear;
+                        clear_screen;
                         continue;
                     }
-                    clear;
+                    clear_screen;
                 }
-            }
-            if(a=='4')
-            {
-                start_ide();
-                clear;
             }
             else
             {
-                clear;
+                clear_screen;
             }
         }
 
         void start_play(int staff_num)
         {
-            clear;
+            clear_screen;
             memset(display.frame,0,sizeof(display.frame));
             const char* zhuangtai[5]={"PERFECT","MISS ","BAD  ","GOOD ","     "};
             int perfcet=0,good=0,bad=0,miss=0;
@@ -419,7 +520,7 @@ class Game
             printf("\033[?1049l");
             show_cursor();
             fflush(stdout);
-            clear;
+            clear_screen;
             cout<<endl;
             cout<<"============ 游玩结束 ============"<<endl;
             cout<<" 谱面：   "<<staff[staff_num].name<<endl;
@@ -447,7 +548,10 @@ int main()
     #else
         setlocale(LC_ALL, "");    // Linux/Mac UTF-8
     #endif
-    clear;
+    clear_screen;
+
+    display.init();
+    
     while(true)
     {
         game.start();
