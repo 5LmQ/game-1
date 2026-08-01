@@ -1,6 +1,6 @@
-#include "bits.h"
+#include "../tool/bits.h"
 #include "display.h"
-#include "sticker_tool.h"
+#include "../tool/sticker_tool.h"
 #ifdef _WIN32
 #define clear system("cls")
 #else

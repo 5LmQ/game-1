@@ -1,4 +1,4 @@
-#include "bits.h"
+#include "../tool/bits.h"
 //本文件提供一种方法，可以实现在终端实行可视化书写谱面
 #define endl "\n"
 #ifdef _WIN32

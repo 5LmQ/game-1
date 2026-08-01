@@ -1,6 +1,5 @@
-#include "bits.h"
+#include "../tool/bits.h"
 #include "get_staff.h"
-#include <csignal>
 
 using namespace std;
 

@@ -37,6 +37,9 @@
 #include <fstream>
 #include <sstream>
 #include <array>
+#include <csignal>
+#include <chrono>
+#include <thread>
 
 
 //要不是clang不支持   算了这已经是祖传文件了

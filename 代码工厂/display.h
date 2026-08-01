@@ -1,5 +1,5 @@
-#include "bits.h"
-#include "sticker_tool.h"
+#include "../tool/bits.h"
+#include "../tool/sticker_tool.h"
 
 using namespace std;
 
