@@ -112,16 +112,15 @@ char push[5]={'f','g','h','j'};
 
 class Dispaly
 {
-    private:
-        screen screen;
     public:
+        screen screen;
         bool frame[1000000][10][5];  // track 1-4, index 0 unused.  1000000*8ms=8000s
         string px[2]={"     ","-----"};
 
         void init()
         {
             init_sticker();
-            screen.resize(60,30,"  ",0);
+            screen.resize(40,25,"  ",0);
         }
         
         void add_note_to_frame(Note n)
@@ -155,7 +154,13 @@ class Dispaly
             return s;
         }
 
-        
+        void print_start_choose()
+        {
+            screen.resize(40,25,"  ",0);
+            screen.add_sticker(sticker_map["background(1)"],0,0);
+
+            screen.print_screen();
+        }
 
 }display;
 
@@ -200,11 +205,7 @@ class Game
         void start()
         {
             //理论上这里需要改成开始屏幕的显示
-            cout<<"1.存入谱面"<<endl;
-            cout<<"2.删除谱面"<<endl;
-            cout<<"3.游玩谱面"<<endl;
-            cout<<"4.制作谱面"<<endl;
-            cout<<"5.退出游戏"<<endl;
+            display.print_start_choose();
             char a=GETCH;
             if(a=='5' || a==3)
             {
