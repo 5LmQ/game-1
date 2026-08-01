@@ -1,6 +1,8 @@
 #include "bits.h"
 using namespace std;
 
+#pragma once
+
 namespace tool{
     // 判断一个 Unicode 码点的终端显示宽度（中文/全角=2，其余=1）
     inline int cp_width(uint32_t cp) {
@@ -86,10 +88,13 @@ namespace sticker_tool{
 
     struct Sticker
     {
-        int height;
-        int width;
+        int height = 0;
+        int width = 0;
         vector<string> stick;
-        vector<vector<int>> color;
+        vector<vector<int> > color;
+        Sticker() = default;
+        Sticker(const Sticker&) = default;
+        Sticker& operator=(const Sticker&) = default;
     };
 
     map<string, Sticker> sticker_map;

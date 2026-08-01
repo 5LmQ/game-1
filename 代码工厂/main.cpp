@@ -1,4 +1,5 @@
 #include "bits.h"
+#include "display.h"
 #include "sticker_tool.h"
 #ifdef _WIN32
 #define clear system("cls")
@@ -8,6 +9,7 @@
 
 using namespace std;
 using namespace sticker_tool;
+
 
 int main() 
 {
@@ -22,8 +24,6 @@ int main()
     screen a;
     a.resize(60,30,"  ",0);
     a.add_sticker(sticker_map["Empty_square"],0,0);
-    a.add_sticker(sticker_map["Empty_square"],4,0); 
-
     a.print_screen();
     return 0;
 }
